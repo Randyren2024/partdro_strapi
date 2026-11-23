@@ -1,0 +1,27 @@
+{
+  "collectionName": "components_sections_showcases",
+  "info": {
+    "displayName": "Showcase"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "media": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "videos"
+      ]
+    },
+    "caption": {
+      "type": "string"
+    }
+  }
+}

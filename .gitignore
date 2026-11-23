@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# build output
+.nuxt/
+.output/
+dist/
+build/
+.strapi/
+.cache/
+.tmp/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+web/scripts/ingest/ai_config.json
+
+# python
+__pycache__/
+*.pyc
+
+# generated
+cms/types/generated/
+*.log
+
+# supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+
+# editor / OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_sections_feature_blocks",
+  "info": {
+    "displayName": "FeatureBlock",
+    "description": "generic titled section with item list; covers payload pod / safety / autonomy / ground control / payload ecosystem / deployments"
+  },
+  "options": {},
+  "attributes": {
+    "eyebrow": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.feature-item"
+    }
+  }
+}

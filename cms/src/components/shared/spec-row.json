@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_shared_spec_rows",
+  "info": {
+    "displayName": "SpecRow"
+  },
+  "options": {},
+  "attributes": {
+    "label": {
+      "type": "string",
+      "required": true
+    },
+    "value": {
+      "type": "text",
+      "required": true
+    }
+  }
+}

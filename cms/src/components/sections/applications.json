@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_sections_applications",
+  "info": {
+    "displayName": "Applications"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "items": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.application"
+    }
+  }
+}

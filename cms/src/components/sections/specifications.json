@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_sections_specifications",
+  "info": {
+    "displayName": "Specifications"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "rows": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.spec-row"
+    }
+  }
+}

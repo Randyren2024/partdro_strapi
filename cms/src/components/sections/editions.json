@@ -1,0 +1,28 @@
+{
+  "collectionName": "components_sections_editions",
+  "info": {
+    "displayName": "Editions"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "headers": {
+      "type": "json"
+    },
+    "rows": {
+      "type": "json"
+    },
+    "kitTitle": {
+      "type": "string"
+    },
+    "kitList": {
+      "type": "text"
+    }
+  }
+}

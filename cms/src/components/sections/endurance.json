@@ -1,0 +1,31 @@
+{
+  "collectionName": "components_sections_endurances",
+  "info": {
+    "displayName": "Endurance"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "points": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.stat"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "note": {
+      "type": "text"
+    }
+  }
+}

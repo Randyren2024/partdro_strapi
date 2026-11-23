@@ -1,0 +1,76 @@
+{
+  "kind": "collectionType",
+  "collectionName": "products",
+  "info": {
+    "singularName": "product",
+    "pluralName": "products",
+    "displayName": "Product",
+    "description": "Drone product landing page content"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
+    "code": {
+      "type": "string",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "tagline": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": "text"
+    },
+    "category": {
+      "type": "enumeration",
+      "enum": [
+        "multi-mission",
+        "delivery-logistics",
+        "agriculture",
+        "inspection-mapping",
+        "other"
+      ],
+      "default": "multi-mission"
+    },
+    "heroImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "heroStats": {
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.stat"
+    },
+    "quoteCta": {
+      "type": "component",
+      "repeatable": false,
+      "component": "sections.quote-cta"
+    },
+    "sections": {
+      "type": "dynamiczone",
+      "components": [
+        "sections.overview",
+        "sections.feature-block",
+        "sections.endurance",
+        "sections.applications",
+        "sections.showcase",
+        "sections.editions",
+        "sections.specifications",
+        "sections.faq"
+      ]
+    }
+  }
+}
