@@ -1,11 +1,25 @@
 // POST /api/ai/test — send a tiny chat completion to validate a config before saving.
-// Body: { baseUrl, apiKey, model, temperature? }
+// Body: { id?, baseUrl, apiKey, model, temperature? }
+// `id` points at a saved config; empty fields fall back to the stored values so a
+// saved config can be tested without re-entering the API key.
+
+import { readConfigFile } from '../../utils/aiConfig'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event) as Record<string, unknown>
-  const baseUrl = typeof body.baseUrl === 'string' ? body.baseUrl.trim().replace(/\/+$/, '') : ''
-  const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : ''
-  const model = typeof body.model === 'string' ? body.model.trim() : ''
+  const stored = typeof body.id === 'string'
+    ? readConfigFile().configs.find((c) => c.id === body.id)
+    : undefined
+
+  const baseUrl = typeof body.baseUrl === 'string' && body.baseUrl.trim()
+    ? body.baseUrl.trim().replace(/\/+$/, '')
+    : (stored?.baseUrl ?? '')
+  const apiKey = typeof body.apiKey === 'string' && body.apiKey.trim()
+    ? body.apiKey.trim()
+    : (stored?.apiKey ?? '')
+  const model = typeof body.model === 'string' && body.model.trim()
+    ? body.model.trim()
+    : (stored?.model ?? '')
   const temperature = typeof body.temperature === 'number' ? body.temperature : 0.1
 
   if (!baseUrl || !model) {

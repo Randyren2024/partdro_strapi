@@ -1,6 +1,7 @@
 // AI model configuration shared across server routes.
-// Stores presets + the currently saved config on disk in scripts/ingest/ai_config.json
+// Stores presets + all saved configs on disk in scripts/ingest/ai_config.json
 // so both the Nuxt frontend and the Python ingest.py CLI see the same state.
+// One config is active at a time; the Python pipeline reads the active one.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -43,7 +44,7 @@ export const PRESETS: Preset[] = [
     label: 'DeepSeek (官方)',
     provider: 'OpenAI Compatible',
     baseUrl: 'https://api.deepseek.com/v1',
-    defaultModels: ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-chat', 'deepseek-reasoner'],
+    defaultModels: ['deepseek-flash', 'deepseek-v4-pro'],
     hint: 'OpenAI Format, 国内直连稳定',
   },
   {
@@ -51,7 +52,7 @@ export const PRESETS: Preset[] = [
     label: 'EmpirioLabs AI',
     provider: 'OpenAI Compatible',
     baseUrl: 'https://api.empiriolabs.ai/v1',
-    defaultModels: ['deepseek-v4-1-flash', 'gpt-4o-mini', 'claude-sonnet-4'],
+    defaultModels: ['deepseek-v4-1-flash-1017', 'deepseek-v4-flash-0731', 'deepseek-v4-pro', 'gpt-4o-mini'],
     hint: 'sk-empiriolabs-... key, 900+ models on one key',
   },
   {
@@ -67,8 +68,15 @@ export const PRESETS: Preset[] = [
     label: 'OpenRouter',
     provider: 'OpenAI Compatible',
     baseUrl: 'https://openrouter.ai/api/v1',
-    defaultModels: ['deepseek/deepseek-chat', 'meta-llama/llama-3.3-70b-instruct', 'google/gemini-2.0-flash-exp'],
-    hint: '聚合多厂商，统一接口',
+    defaultModels: [
+      'nvidia/nemotron-3-ultra-550b-a55b:free',
+      'inclusionai/ling-3.2-flash:free',
+      'baidu/ernie-5.5-flash-preview:free',
+      'particle-ai/particle-1:free',
+      'nvidia/nemotron-3.5-lightning:free',
+      'google/gemma-4-31b-it:free',
+    ],
+    hint: ':free 免费模型，有速率/每日额度限制',
   },
   {
     id: 'ollama',
@@ -96,20 +104,57 @@ export function presetById(id: string | undefined): Preset | undefined {
 
 export const CONFIG_FILE = join(INGEST_DIR, 'ai_config.json')
 
-export function readConfig(): AiConfig | null {
+// v2 layout: multiple saved configs + one active id. Legacy single-object files
+// are migrated on read so existing checkouts keep working.
+export type AiConfigFile = {
+  version: 2
+  activeId: string | null
+  configs: AiConfig[]
+}
+
+export function readConfigFile(): AiConfigFile {
+  const empty: AiConfigFile = { version: 2, activeId: null, configs: [] }
   try {
-    if (!existsSync(CONFIG_FILE)) return null
-    const raw = readFileSync(CONFIG_FILE, 'utf-8')
-    const parsed = JSON.parse(raw)
-    return parsed && parsed.baseUrl ? (parsed as AiConfig) : null
+    if (!existsSync(CONFIG_FILE)) return empty
+    const parsed = JSON.parse(readFileSync(CONFIG_FILE, 'utf-8'))
+    if (parsed && Array.isArray(parsed.configs)) {
+      const configs = (parsed.configs as AiConfig[]).filter((c) => c && c.baseUrl)
+      const activeId = configs.some((c) => c.id === parsed.activeId)
+        ? (parsed.activeId as string)
+        : (configs[0]?.id ?? null)
+      return { version: 2, activeId, configs }
+    }
+    if (parsed && parsed.baseUrl) {
+      const cfg = parsed as AiConfig
+      return { version: 2, activeId: cfg.id, configs: [cfg] }
+    }
+    return empty
   } catch {
-    return null
+    return empty
   }
 }
 
-export function writeConfig(cfg: AiConfig): void {
+export function writeConfigFile(file: AiConfigFile): void {
   mkdirSync(INGEST_DIR, { recursive: true })
-  writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2), 'utf-8')
+  const body = { version: 2, activeId: file.activeId, configs: file.configs }
+  writeFileSync(CONFIG_FILE, JSON.stringify(body, null, 2), 'utf-8')
+}
+
+export function activeConfig(file = readConfigFile()): AiConfig | null {
+  return file.configs.find((c) => c.id === file.activeId) ?? file.configs[0] ?? null
+}
+
+export function readConfig(): AiConfig | null {
+  return activeConfig()
+}
+
+export function listMasked(file = readConfigFile()) {
+  const active = activeConfig(file)
+  return {
+    activeId: active?.id ?? null,
+    current: toMasked(active),
+    configs: file.configs.map((c) => toMasked(c)!),
+  }
 }
 
 // ----- Masking -----------------------------------------------------------

@@ -1,10 +1,22 @@
-// GET /api/ai/models?baseUrl=...&apiKey=...   — proxies /v1/models through the server.
+// GET /api/ai/models?baseUrl=...&apiKey=...&id=...   — proxies /v1/models through the server.
 // Never exposes apiKey to the browser: we pass it upstream and only forward {id, owned_by, context_window, description}.
+// `id` points at a saved config; a blank apiKey/baseUrl falls back to the stored values.
 
 import { H3Event } from 'h3'
+import { readConfigFile } from '../../utils/aiConfig'
 
 export default defineEventHandler(async (event: H3Event) => {
-  const { baseUrl, apiKey } = getQuery(event) as { baseUrl?: string; apiKey?: string }
+  const query = getQuery(event) as { baseUrl?: string; apiKey?: string; id?: string }
+  const stored = query.id
+    ? readConfigFile().configs.find((c) => c.id === query.id)
+    : undefined
+
+  const baseUrl = query.baseUrl && String(query.baseUrl).trim()
+    ? String(query.baseUrl).trim()
+    : (stored?.baseUrl ?? '')
+  const apiKey = query.apiKey && String(query.apiKey).trim()
+    ? String(query.apiKey).trim()
+    : (stored?.apiKey ?? '')
 
   if (!baseUrl) throw createError({ statusCode: 400, statusMessage: 'baseUrl is required' })
   const normalized = String(baseUrl).replace(/\/+$/, '')

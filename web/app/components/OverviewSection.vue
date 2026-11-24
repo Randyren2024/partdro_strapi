@@ -36,20 +36,24 @@ const asset = useStrapiAsset()
 }
 .split-copy .body-text { margin: 0 0 28px; }
 .split-media { margin: 0; }
-.split-media img { border-radius: 6px; border: 1px solid var(--line); }
+.split-media img { border-radius: var(--radius-lg); border: 1px solid var(--color-border-secondary); }
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 18px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--color-border-secondary);
   padding-top: 20px;
 }
 .stat strong {
   display: block;
-  font-family: var(--font-display); font-stretch: 90%;
-  font-size: 30px; font-weight: 700;
+  font-family: var(--font-family);
+  font-size: 30px; font-weight: 600; line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
-.stat span { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.stat span {
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
 @media (max-width: 800px) { .split { grid-template-columns: 1fr; } }
 </style>

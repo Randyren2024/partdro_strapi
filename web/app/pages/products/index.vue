@@ -1,0 +1,398 @@
+<template>
+  <div class="products-page">
+    <div class="page-header">
+      <div class="container">
+        <h1>{{ t('products.title') }}</h1>
+        <p>{{ t('products.subtitle') }}</p>
+      </div>
+    </div>
+
+    <div class="page-section">
+      <div class="container">
+        <div class="catalog-toolbar">
+          <div class="catalog-search">
+            <a-input-search
+              v-model:value="searchQuery"
+              :placeholder="t('products.searchPlaceholder')"
+              :aria-label="t('products.searchPlaceholder')"
+              enter-button
+              allow-clear
+              size="large"
+              @search="applySearch"
+            />
+          </div>
+          <p class="catalog-count" aria-live="polite">{{ resultCount }} {{ t('products.results') }}</p>
+        </div>
+
+        <div class="product-filter" role="group" :aria-label="t('products.all')">
+          <button
+            class="product-filter__tab"
+            :class="{ 'product-filter__tab--active': !activeCategory }"
+            :aria-pressed="!activeCategory"
+            @click="setCategory(null)"
+          >
+            {{ t('products.all') }}
+          </button>
+          <button
+            v-for="cat in CATEGORIES"
+            :key="cat"
+            class="product-filter__tab"
+            :class="{ 'product-filter__tab--active': activeCategory === cat }"
+            :aria-pressed="activeCategory === cat"
+            @click="setCategory(cat)"
+          >
+            {{ t(`products.category.${cat}`) }}
+          </button>
+        </div>
+
+        <nav class="product-solutions" :aria-label="t('products.all')">
+          <span>{{ t('products.title') }}</span>
+          <router-link to="/products">{{ t('nav.products') }}</router-link>
+        </nav>
+
+        <div v-if="productsLoading && !products.length" class="catalog-loading"><a-spin size="large" /></div>
+        <div v-else-if="filteredProducts.length" class="product-grid">
+          <div class="product-card" v-for="product in filteredProducts" :key="product.slug">
+            <div class="product-card__image">
+              <img :src="asset(product.heroImage?.url)" :alt="product.heroImage?.alternativeText || product.name" loading="lazy" decoding="async" width="640" height="420" />
+              <div v-if="product.category" class="product-card__category">{{ categoryLabel(product.category) }}</div>
+            </div>
+            <div class="product-card__body">
+              <h3>{{ product.name }}</h3>
+              <p>{{ product.tagline || product.subtitle }}</p>
+              <router-link :to="lp('/products/' + product.slug)" class="product-card__link">
+                {{ t('products.viewDetails') }} <RightOutlined />
+              </router-link>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="catalog-empty">
+          <div class="catalog-empty__mark">⌕</div>
+          <h2>{{ t('products.noResults') }}</h2>
+          <p>{{ t('products.noResultsHint') }}</p>
+          <a-button @click="clearFilters">{{ t('products.clearFilters') }}</a-button>
+          <a-button type="primary" @click="$router.push(lp('/contact'))">{{ t('nav.contact') }}</a-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { RightOutlined } from '@ant-design/icons-vue'
+import { useLocalePath } from '~/composables/useLocalePath'
+import { useStrapiAsset } from '~/composables/useStrapiAsset'
+
+type ProductCategory = 'multi-mission' | 'delivery-logistics' | 'agriculture' | 'inspection-mapping' | 'other'
+
+type ProductCard = {
+  slug: string
+  name: string
+  tagline?: string | null
+  subtitle?: string | null
+  category?: string | null
+  heroImage?: { url: string; alternativeText?: string | null } | null
+}
+
+const CATEGORIES: ProductCategory[] = ['multi-mission', 'delivery-logistics', 'agriculture', 'inspection-mapping', 'other']
+
+const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+const lp = useLocalePath()
+const asset = useStrapiAsset()
+
+const { data: products, pending: productsLoading } = await useFetch<ProductCard[]>('/api/products', {
+  key: 'products-list',
+  default: () => [],
+})
+const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
+
+const categoryLabel = (cat: string) => {
+  const key = `products.category.${cat}`
+  return t(key) === key ? cat : t(key)
+}
+
+const activeCategory = computed<ProductCategory | null>(() =>
+  CATEGORIES.includes(route.query.category as ProductCategory)
+    ? (route.query.category as ProductCategory)
+    : null,
+)
+
+watch(() => route.query.q, (value) => {
+  searchQuery.value = typeof value === 'string' ? value : ''
+})
+
+const normalizedQuery = computed(() => searchQuery.value.trim().toLocaleLowerCase())
+
+function matchesQuery(values: Array<string | undefined | null>) {
+  if (!normalizedQuery.value) return true
+  return values.some((value) => (value ?? '').toLocaleLowerCase().includes(normalizedQuery.value))
+}
+
+const filteredProducts = computed(() =>
+  (products.value ?? []).filter((product) => {
+    if (activeCategory.value && product.category !== activeCategory.value) return false
+    return matchesQuery([
+      product.name,
+      product.slug,
+      product.tagline,
+      product.subtitle,
+      product.category,
+    ])
+  }),
+)
+
+const resultCount = computed(() => filteredProducts.value.length)
+
+function applySearch() {
+  const query = searchQuery.value.trim()
+  router.replace({ query: { ...route.query, q: query || undefined } })
+}
+
+function setCategory(category: ProductCategory | null) {
+  const query = searchQuery.value.trim()
+  router.replace({ query: { ...route.query, q: query || undefined, category: category ?? undefined } })
+}
+
+function clearFilters() {
+  searchQuery.value = ''
+  router.replace({ query: { ...route.query, q: undefined, category: undefined } })
+}
+</script>
+
+<style scoped>
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.catalog-search {
+  width: min(100%, 520px);
+}
+.catalog-search :deep(.ant-input-group .ant-input),
+.catalog-search :deep(.ant-input-search-button) {
+  min-height: 46px;
+}
+.catalog-search :deep(.ant-input-search-button) {
+  border-radius: 0 999px 999px 0 !important;
+}
+.catalog-search :deep(.ant-input-affix-wrapper) {
+  border-radius: 999px 0 0 999px;
+}
+.catalog-count {
+  color: var(--pd-ink-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.product-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 30px;
+}
+.product-filter__tab {
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--pd-line);
+  border-radius: 999px;
+  background: var(--pd-surface);
+  color: var(--pd-ink-soft);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.product-filter__tab:hover {
+  color: var(--pd-primary);
+  border-color: var(--pd-primary);
+  transform: translateY(-1px);
+}
+.product-filter__tab--active,
+.product-filter__tab--active:hover {
+  color: var(--pd-on-primary);
+  background: var(--pd-primary);
+  border-color: var(--pd-primary);
+}
+.product-solutions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  margin: -8px 0 26px;
+  color: var(--pd-ink-muted);
+  font-size: 13px;
+}
+.product-solutions a {
+  color: var(--pd-primary);
+  font-weight: 650;
+  border-bottom: 1px dashed color-mix(in srgb, var(--pd-primary) 45%, transparent);
+}
+.product-solutions a:hover {
+  border-bottom-style: solid;
+}
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+  gap: clamp(16px, 2vw, 26px);
+}
+.product-card {
+  overflow: hidden;
+  border: 1px solid var(--pd-line);
+  border-radius: var(--pd-radius-lg);
+  background: var(--pd-surface);
+  box-shadow: var(--pd-shadow-sm);
+  transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+}
+.product-card:hover {
+  transform: translateY(-5px);
+  border-color: color-mix(in srgb, var(--pd-primary) 42%, var(--pd-line));
+  box-shadow: var(--pd-shadow);
+}
+.product-card__image {
+  position: relative;
+  height: clamp(210px, 22vw, 260px);
+  overflow: hidden;
+  background: var(--pd-bg-soft);
+}
+.product-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .5s ease;
+}
+.product-card:hover .product-card__image img {
+  transform: scale(1.045);
+}
+.product-card__category {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 6px 11px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(23, 26, 28, .86);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+.product-card__body {
+  display: flex;
+  min-height: 210px;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 22px 23px 24px;
+}
+.product-card__body h3 {
+  margin-bottom: 9px;
+  color: var(--pd-ink);
+  font-size: 21px;
+  font-weight: 760;
+  letter-spacing: -.025em;
+  line-height: 1.2;
+}
+.product-card__body p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  margin-bottom: 18px;
+  color: var(--pd-ink-soft);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.product-card__link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  color: var(--pd-primary);
+  font-size: 14px;
+  font-weight: 750;
+  transition: gap .18s ease;
+}
+.product-card__link:hover {
+  gap: 12px;
+}
+.product-card__link:focus-visible,
+.product-filter__tab:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--pd-primary) 48%, transparent);
+  outline-offset: 3px;
+}
+.catalog-loading {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+}
+.catalog-empty {
+  display: flex;
+  min-height: 300px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 20px;
+  border: 1px dashed var(--pd-line-strong);
+  border-radius: var(--pd-radius-lg);
+  background: var(--pd-surface);
+  text-align: center;
+}
+.catalog-empty__mark {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  color: var(--pd-primary);
+  background: var(--pd-bg-soft);
+  font-size: 32px;
+}
+.catalog-empty h2 {
+  margin-bottom: 8px;
+  color: var(--pd-ink);
+  font-size: 24px;
+}
+.catalog-empty p {
+  margin-bottom: 20px;
+  color: var(--pd-ink-soft);
+}
+.catalog-empty :deep(.ant-btn) {
+  margin: 4px;
+}
+@media (max-width: 640px) {
+  .product-card__body { min-height: 0; padding: 20px; }
+  .product-card__image { height: 230px; }
+  .catalog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .catalog-search { width: 100%; }
+  .catalog-count { text-align: right; }
+  .product-grid { grid-template-columns: 1fr; }
+  .product-filter {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    margin-inline: -16px;
+    padding: 4px 16px 12px;
+  }
+  .product-filter::-webkit-scrollbar { display: none; }
+  .product-filter__tab { flex: 0 0 auto; scroll-snap-align: start; }
+  .product-solutions { gap: 10px 14px; line-height: 1.6; }
+  .product-card__body h3 { font-size: 20px; }
+}
+</style>

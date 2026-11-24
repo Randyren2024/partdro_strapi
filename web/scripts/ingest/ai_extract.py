@@ -267,13 +267,33 @@ def _load_config_json() -> dict | None:
         return None
 
 
+def _config_entry() -> dict:
+    """Active entry from ai_config.json.
+
+    Supports the multi-config layout `{ activeId, configs: [...] }` written by the
+    /ingest UI, plus the legacy single-object layout. `AI_CONFIG_ID` overrides
+    which saved config is used.
+    """
+    cfg = _load_config_json() or {}
+    configs = cfg.get("configs")
+    if isinstance(configs, list):
+        entries = [c for c in configs if isinstance(c, dict) and c.get("baseUrl")]
+        if not entries:
+            return {}
+        wanted = os.environ.get("AI_CONFIG_ID") or cfg.get("activeId")
+        for entry in entries:
+            if wanted and entry.get("id") == wanted:
+                return entry
+        return entries[0]
+    return cfg
+
+
 def _effective(key: str, env_key: str, default: str = "") -> str:
-    """Resolve a value: env > ai_config.json > default."""
+    """Resolve a value: env > active ai_config.json entry > default."""
     env_val = os.environ.get(env_key)
     if env_val is not None and env_val != "":
         return env_val
-    cfg = _load_config_json() or {}
-    cfg_val = cfg.get(key)
+    cfg_val = _config_entry().get(key)
     if isinstance(cfg_val, str) and cfg_val:
         return cfg_val
     return default
@@ -285,7 +305,7 @@ def _client(model: str | None) -> OpenAI:
     base_url = _effective("baseUrl", "AI_BASE_URL") or os.environ.get("OPENAI_BASE_URL", "")
     if not api_key and not base_url:
         # last resort: try ai_config.json silently, or fall back to Ollama default
-        cfg = _load_config_json() or {}
+        cfg = _config_entry()
         base_url = cfg.get("baseUrl", "") or "http://localhost:11434/v1"
         api_key = cfg.get("apiKey", "")
         if not api_key:
@@ -303,8 +323,7 @@ def _pick_model(cli_model: str | None) -> str:
     env = os.environ.get("AI_MODEL") or os.environ.get("OPENAI_MODEL")
     if env:
         return env
-    cfg = _load_config_json() or {}
-    cfg_model = cfg.get("model")
+    cfg_model = _config_entry().get("model")
     if isinstance(cfg_model, str) and cfg_model:
         return cfg_model
     # Defaults by provider pattern

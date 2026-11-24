@@ -11,6 +11,7 @@ export default defineEventHandler(async () => {
     name: p.name,
     tagline: p.tagline,
     subtitle: p.subtitle,
+    category: p.category ?? null,
     heroImage: p.heroImage ?? null,
   }))
 })

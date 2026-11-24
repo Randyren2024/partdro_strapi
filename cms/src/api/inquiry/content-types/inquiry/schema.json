@@ -1,0 +1,82 @@
+{
+  "kind": "collectionType",
+  "collectionName": "inquiries",
+  "info": {
+    "singularName": "inquiry",
+    "pluralName": "inquiries",
+    "displayName": "Inquiry",
+    "description": "Contact form submissions"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "email": {
+      "type": "email",
+      "required": true
+    },
+    "phone": {
+      "type": "string"
+    },
+    "type": {
+      "type": "enumeration",
+      "enum": [
+        "contact",
+        "booking",
+        "franchise"
+      ],
+      "default": "contact"
+    },
+    "message": {
+      "type": "text",
+      "required": true
+    },
+    "page": {
+      "type": "string"
+    },
+    "productSlug": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "leadStatus": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "text"
+    },
+    "quoteValue": {
+      "type": "decimal"
+    },
+    "quoteCurrency": {
+      "type": "string"
+    },
+    "landingPage": {
+      "type": "string"
+    },
+    "utmSource": {
+      "type": "string"
+    },
+    "utmMedium": {
+      "type": "string"
+    },
+    "utmCampaign": {
+      "type": "string"
+    },
+    "leadProfile": {
+      "type": "json"
+    }
+  }
+}

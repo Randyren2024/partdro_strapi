@@ -1,0 +1,86 @@
+/* Compatibility layer: the storefront product pages were written against the
+   previous AntD-flavoured token names. Map them onto the Partdro (legacy) system
+   so both the ported marketing pages and the product pages share one visual language. */
+:root {
+  --font-display: var(--pd-font-display);
+  --font-body: var(--pd-font);
+  --font-family-code: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-size: 16px;
+  --font-size-sm: 14px;
+
+  --radius-sm: 10px;
+  --radius: var(--pd-radius);
+  --radius-lg: var(--pd-radius-lg);
+
+  --box-shadow: var(--pd-shadow-sm);
+  --box-shadow-tertiary: var(--pd-shadow);
+  --motion-duration: .2s;
+  --motion-ease: cubic-bezier(.2, .7, .3, 1);
+
+  --color-primary: var(--pd-primary);
+  --color-primary-active: var(--pd-primary-hover);
+  --color-primary-light: #ffb066;
+  --color-primary-bg: rgba(232, 93, 42, .1);
+  --color-primary-border: rgba(232, 93, 42, .34);
+
+  --color-bg-container: var(--pd-surface);
+  --color-bg-dark: #0a0c0e;
+  --color-bg-dark-elevated: #121619;
+  --color-border: var(--pd-line);
+  --color-border-secondary: var(--pd-line-strong);
+  --color-fill-tertiary: rgba(127, 127, 127, .12);
+
+  --color-text: var(--pd-ink);
+  --color-text-secondary: var(--pd-ink-soft);
+  --color-text-tertiary: var(--pd-ink-muted);
+  --color-text-inverse: #ffffff;
+  --color-text-dark: #f4f5f6;
+  --color-text-dark-secondary: #9ba3a9;
+  --color-text-dark-tertiary: #6f777d;
+
+  --color-success: #2f9e63;
+  --color-error: #d94a3d;
+  --color-error-text: #ff7a6e;
+}
+
+.dark {
+  --color-primary-bg: rgba(255, 106, 26, .14);
+  --color-primary-border: rgba(255, 106, 26, .4);
+  --color-text-inverse: #140900;
+}
+
+/* Shared helpers used by the ported marketing pages. */
+.section {
+  padding: var(--pd-section-space, clamp(76px, 9vw, 120px)) 0;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--pd-primary);
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.body-text {
+  max-width: 68ch;
+  color: var(--pd-ink-soft);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--pd-line);
+  border-radius: 999px;
+  background: var(--pd-surface);
+  color: var(--pd-ink-soft);
+  font-size: .78rem;
+  font-weight: 600;
+}
