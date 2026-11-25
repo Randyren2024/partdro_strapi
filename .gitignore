@@ -24,6 +24,9 @@ __pycache__/
 cms/types/generated/
 *.log
 
+# local product source data
+product_data/
+
 # supabase CLI local state
 supabase/.temp/
 supabase/.branches/
