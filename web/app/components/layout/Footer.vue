@@ -117,7 +117,7 @@ const showCta = computed(() => stripLocalePrefix(route.path) !== '/products/d15r
 .cta-card {
   border: 1px solid rgba(255, 106, 26, 0.3);
   background: radial-gradient(circle at 80% 20%, rgba(255, 106, 26, 0.13), transparent 30%), rgba(255, 255, 255, 0.025);
-  border-radius: 32px;
+  border-radius: 0;
   padding: 56px 58px;
   display: flex;
   justify-content: space-between;
@@ -168,7 +168,7 @@ const showCta = computed(() => stripLocalePrefix(route.path) !== '/products/d15r
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-radius: 999px;
+  border-radius: 0;
   padding: 14px 22px;
   font-weight: 800;
   font-size: 0.95rem;
@@ -321,7 +321,7 @@ const showCta = computed(() => stripLocalePrefix(route.path) !== '/products/d15r
   }
   .cta-card {
     padding: 30px 26px;
-    border-radius: 22px;
+    border-radius: 0;
   }
   .cta-card__actions {
     flex-direction: column;
