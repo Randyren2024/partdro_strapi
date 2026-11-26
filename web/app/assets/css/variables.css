@@ -1,39 +1,39 @@
 :root {
   color-scheme: light;
-  /* Shared visual language: premium industrial dark mode with a complete light-mode fallback. */
-  --pd-bg: #f5f4f0;
-  --pd-bg-soft: #eceae5;
-  --pd-surface: #ffffff;
+  /* Night-ops flight manual. Light mode is the paper copy; dark is the cockpit. */
+  --pd-bg: #f3f1ec;
+  --pd-bg-soft: #e7e4dc;
+  --pd-surface: #faf9f6;
   --pd-surface-elevated: #ffffff;
-  --pd-ink: #171a1c;
-  --pd-ink-soft: #73797a;
-  --pd-ink-muted: #929797;
-  --pd-line: rgba(23, 26, 28, .10);
-  --pd-line-strong: rgba(23, 26, 28, .18);
+  --pd-ink: #121417;
+  --pd-ink-soft: #5c6368;
+  --pd-ink-muted: #8a9196;
+  --pd-line: rgba(18, 20, 23, .12);
+  --pd-line-strong: rgba(18, 20, 23, .22);
+  --pd-grid: rgba(18, 20, 23, .055);
   --pd-primary: #e85d2a;
   --pd-primary-hover: #c9481b;
   --pd-primary-deep: #aa3915;
-  --pd-accent: #3fd0ff;
-  --pd-on-primary: #ffffff;
-  --pd-shadow: 0 18px 50px rgba(23, 26, 28, .10);
-  --pd-shadow-sm: 0 8px 24px rgba(23, 26, 28, .08);
-  --pd-radius: 18px;
-  --pd-radius-lg: 22px;
-  --pd-container: 1200px;
-  --pd-header-height: 68px;
+  --pd-accent: #0e7c9b;
+  --pd-on-primary: #fffaf6;
+  --pd-shadow: none;
+  --pd-shadow-sm: none;
+  --pd-radius: 0px;
+  --pd-radius-lg: 0px;
+  --pd-container: 1240px;
+  --pd-header-height: 64px;
   --pd-font: "Barlow", system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-  --pd-font-display: var(--pd-font);
+  --pd-font-display: "Barlow Condensed", "Barlow", system-ui, sans-serif;
+  --pd-font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --pd-font-weight-regular: 400;
   --pd-font-weight-medium: 500;
   --pd-font-weight-semibold: 600;
   --pd-font-weight-bold: 700;
-  --pd-font-weight-extrabold: 800;
-  --pd-leading-tight: 1.02;
-  --pd-leading-heading: 1.08;
+  --pd-leading-tight: .92;
+  --pd-leading-heading: .96;
   --pd-leading-body: 1.65;
-  --pd-tracking-display: -.045em;
+  --pd-tracking-display: -.02em;
 
-  /* Backwards-compatible aliases used by existing page components. */
   --color-primary: var(--pd-primary);
   --color-primary-dark: var(--pd-primary-hover);
   --color-primary-light: #ffb066;
@@ -52,22 +52,23 @@
 
 .dark {
   color-scheme: dark;
-  --pd-bg: #060708;
-  --pd-bg-soft: #0a0c0e;
-  --pd-surface: #101418;
-  --pd-surface-elevated: #14181d;
-  --pd-ink: #f4f5f6;
-  --pd-ink-soft: #9ba3a9;
-  --pd-ink-muted: #6f777d;
-  --pd-line: rgba(255, 255, 255, .09);
-  --pd-line-strong: rgba(255, 255, 255, .18);
-  --pd-primary: #ff6a1a;
-  --pd-primary-hover: #ff8b45;
-  --pd-primary-deep: #c84b0b;
-  --pd-accent: #3fd0ff;
+  --pd-bg: #07080a;
+  --pd-bg-soft: #0c0e11;
+  --pd-surface: #101318;
+  --pd-surface-elevated: #161b21;
+  --pd-ink: #f4f1ea;
+  --pd-ink-soft: #a7b0b6;
+  --pd-ink-muted: #6e787e;
+  --pd-line: rgba(244, 241, 234, .1);
+  --pd-line-strong: rgba(244, 241, 234, .2);
+  --pd-grid: rgba(244, 241, 234, .045);
+  --pd-primary: #ff5a1f;
+  --pd-primary-hover: #ff7a45;
+  --pd-primary-deep: #c2410c;
+  --pd-accent: #5ce1ff;
   --pd-on-primary: #140900;
-  --pd-shadow: 0 22px 70px rgba(0, 0, 0, .45);
-  --pd-shadow-sm: 0 8px 28px rgba(0, 0, 0, .32);
+  --pd-shadow: none;
+  --pd-shadow-sm: none;
 
   --color-primary: var(--pd-primary);
   --color-primary-dark: var(--pd-primary-hover);
@@ -95,17 +96,19 @@ body {
   margin: 0;
   font-family: var(--pd-font);
   color: var(--pd-ink);
-  background: var(--pd-bg);
+  background-color: var(--pd-bg);
+  background-image:
+    linear-gradient(var(--pd-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pd-grid) 1px, transparent 1px);
+  background-size: 80px 80px;
+  background-position: center top;
   font-size: 16px;
   font-weight: var(--pd-font-weight-regular);
   line-height: var(--pd-leading-body);
   font-optical-sizing: auto;
-  font-kerning: normal;
-  font-feature-settings: "kern";
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color .25s ease, color .25s ease;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -116,7 +119,8 @@ h1, h2, h3, h4 {
   font-family: var(--pd-font-display);
   line-height: var(--pd-leading-heading);
   letter-spacing: var(--pd-tracking-display);
-  font-weight: var(--pd-font-weight-extrabold);
+  font-weight: 700;
+  text-wrap: balance;
 }
 
 ::selection { background: var(--pd-primary); color: var(--pd-on-primary); }

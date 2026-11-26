@@ -143,7 +143,7 @@ useHead(() => ({
 .news__card:hover .news__card-image img { transform:scale(1.035); }
 .news__card-body { display:flex; min-width:0; flex-direction:column; align-items:flex-start; padding:clamp(18px,2vw,28px); }
 .news__meta { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-bottom:14px; color:var(--pd-ink-muted); font-size:12px; }
-.news__meta .ant-tag { margin:0; border:0; border-radius:999px; color:var(--pd-primary); background:color-mix(in srgb,var(--pd-primary) 10%,var(--pd-surface)); }
+.news__meta .ant-tag { margin:0; border:0; border-radius:0; color:var(--pd-primary); background:color-mix(in srgb,var(--pd-primary) 10%,var(--pd-surface)); }
 .news__card-body h3 { margin:0 0 10px; color:var(--pd-ink); font-family:var(--pd-font-display); font-size:clamp(19px,2vw,24px); font-weight:700; line-height:1.2; letter-spacing:-.02em; }
 .news__card-body p { margin:0 0 18px; color:var(--pd-ink-soft); font-size:14px; line-height:1.7; }
 .news__link { display:inline-flex; align-items:center; gap:7px; margin-top:auto; color:var(--pd-primary); font-size:14px; font-weight:700; }

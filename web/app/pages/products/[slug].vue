@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { MailOutlined } from '@ant-design/icons-vue'
+import { useLocalePath } from '~/composables/useLocalePath'
 
 const route = useRoute()
+const lp = useLocalePath()
 const { data, error } = await useFetch(`/api/products/${route.params.slug}`) as any
 
 if (error.value || !data.value) {
@@ -23,6 +25,21 @@ const sectionMap: Record<string, any> = {
   'sections.faq': resolveComponent('FaqSection'),
 }
 
+const sectionLabel: Record<string, string> = {
+  'sections.overview': 'Overview',
+  'sections.feature-block': 'Systems',
+  'sections.endurance': 'Endurance',
+  'sections.applications': 'Missions',
+  'sections.showcase': 'Field',
+  'sections.editions': 'Editions',
+  'sections.specifications': 'Specs',
+  'sections.faq': 'FAQ',
+}
+
+function navLabel(section: Record<string, any>) {
+  return sectionLabel[section.__component] || section.eyebrow || section.title || 'Section'
+}
+
 useSeoMeta({
   title: () => `${product.value?.name ?? 'Product'} — Partdro`,
   description: () => product.value?.subtitle ?? '',
@@ -30,8 +47,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <article v-if="product">
-    <!-- HERO -->
+  <article v-if="product" class="product">
     <section class="hero">
       <img
         v-if="product.heroImage"
@@ -44,9 +60,10 @@ useSeoMeta({
         <p class="hero-code">{{ product.code }}<template v-if="product.tagline"> · {{ product.tagline }}</template></p>
         <h1>{{ product.name }}</h1>
         <p class="hero-sub">{{ product.subtitle }}</p>
-        <a-button type="primary" size="large" href="#quote">Request a quote</a-button>
+        <a class="pd-btn pd-btn--solid" href="#quote">Request a quote</a>
         <div v-if="product.heroStats?.length" class="hero-stats">
-          <div v-for="s in product.heroStats" :key="s.id" class="hero-stat">
+          <div v-for="(s, index) in product.heroStats" :key="s.id" class="hero-stat">
+            <em>{{ String(index + 1).padStart(2, '0') }}</em>
             <strong>{{ s.value }}</strong>
             <span>{{ s.label }}</span>
           </div>
@@ -54,102 +71,163 @@ useSeoMeta({
       </div>
     </section>
 
-    <!-- DYNAMIC SECTIONS -->
+    <nav v-if="product.sections?.length" class="section-nav" aria-label="On this page">
+      <a v-for="s in product.sections" :key="s.id" :href="`#sec-${s.id}`">{{ navLabel(s) }}</a>
+      <a v-if="product.quoteCta" href="#quote">Quote</a>
+    </nav>
+
     <template v-for="s in product.sections ?? []" :key="s.id">
-      <component
-        :is="sectionMap[s.__component]"
-        v-if="sectionMap[s.__component]"
-        :section="s"
-      />
+      <div v-if="sectionMap[s.__component]" :id="`sec-${s.id}`" class="section-anchor">
+        <component :is="sectionMap[s.__component]" :section="s" />
+      </div>
     </template>
 
-    <!-- QUOTE CTA -->
     <section v-if="product.quoteCta" id="quote" class="section quote">
       <div class="container quote-box">
+        <p class="eyebrow">Dispatch</p>
         <h2>{{ product.quoteCta.title }}</h2>
         <p class="body-text">{{ product.quoteCta.description }}</p>
-        <a-button type="primary" size="large" href="mailto:sales@partdro.com">
-          <template #icon><MailOutlined /></template>
-          Contact sales
-        </a-button>
+        <div class="quote-actions">
+          <NuxtLink class="pd-btn pd-btn--solid" :to="lp('/contact')">
+            <MailOutlined />
+            Contact sales
+          </NuxtLink>
+          <a class="pd-btn quote-mail" href="mailto:sales@partdro.com">sales@partdro.com</a>
+        </div>
       </div>
     </section>
   </article>
 </template>
 
 <style scoped>
+.product { background: var(--pd-bg); }
 .hero {
   position: relative;
-  min-height: 78vh;
-  display: flex; align-items: flex-end;
-  background: var(--color-bg-dark);
-  color: var(--color-text-inverse);
+  display: flex;
+  align-items: flex-end;
+  min-height: 86vh;
   overflow: hidden;
+  color: #f4f1ea;
+  background: #07080a;
 }
 .hero-bg {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; opacity: 0.55;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: .42;
+  filter: saturate(.8) contrast(1.05);
 }
 .hero-scrim {
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   background:
-    linear-gradient(180deg, rgba(20, 20, 20, 0.35) 0%, rgba(20, 20, 20, 0.85) 78%, #141414 100%),
-    linear-gradient(90deg, rgba(20, 20, 20, 0.55) 0%, rgba(20, 20, 20, 0) 55%);
+    linear-gradient(180deg, rgba(7, 8, 10, .2) 0%, rgba(7, 8, 10, .78) 70%, #07080a 100%),
+    linear-gradient(90deg, rgba(7, 8, 10, .72), transparent 60%);
 }
-.hero-inner { position: relative; z-index: 1; width: 100%; padding-bottom: clamp(40px, 6vw, 72px); }
-@media (max-width: 1120px) {
-  .hero-inner { padding-inline: clamp(16px, 4vw, 48px); }
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding-bottom: clamp(36px, 6vw, 72px);
 }
 .hero-code {
-  font-family: var(--font-family-code); font-size: 13px;
-  letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--color-primary); margin: 0 0 14px;
+  margin: 0 0 14px;
+  color: var(--pd-accent);
+  font-family: var(--pd-font-mono);
+  font-size: 12px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
 }
 .hero-inner h1 {
+  max-width: 12ch;
   margin: 0;
-  font-size: clamp(40px, 7vw, 84px);
-  line-height: 1.02;
-  letter-spacing: -0.015em;
-  max-width: 14ch;
+  color: #f4f1ea;
+  font-size: clamp(3.6rem, 8vw, 7.4rem);
+  line-height: .86;
+  letter-spacing: -.03em;
+  text-transform: uppercase;
 }
 .hero-sub {
-  max-width: 56ch;
-  font-size: clamp(15px, 1.6vw, 19px);
-  color: rgba(255, 255, 255, 0.82);
+  max-width: 40rem;
   margin: 18px 0 28px;
+  color: rgba(244, 241, 234, .78);
+  font-size: clamp(16px, 1.6vw, 19px);
 }
 .hero-stats {
-  display: flex; flex-wrap: wrap; gap: 0;
-  margin-top: clamp(32px, 5vw, 56px);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-top: clamp(28px, 4vw, 48px);
+  border-top: 1px solid rgba(244, 241, 234, .16);
 }
 .hero-stat {
-  padding: 18px 32px 6px 0;
-  margin-right: 32px;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 16px 18px 8px 0;
+  border-right: 1px solid rgba(244, 241, 234, .12);
 }
-.hero-stat:last-child { border-right: none; }
+.hero-stat:last-child { border-right: 0; }
+.hero-stat em {
+  color: var(--pd-accent);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: .14em;
+}
 .hero-stat strong {
   display: block;
-  font-family: var(--font-family);
-  font-size: clamp(26px, 3.4vw, 40px);
-  font-weight: 600;
-  line-height: 1.2;
+  margin-top: 6px;
+  font-family: var(--pd-font-display);
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  line-height: .9;
 }
 .hero-stat span {
-  font-family: var(--font-family);
+  display: block;
+  margin-top: 6px;
+  color: rgba(244, 241, 234, .6);
+  font-family: var(--pd-font-mono);
   font-size: 11px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--color-text-dark-tertiary);
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
-
-.quote { background: var(--color-bg-dark); color: var(--color-text-dark); }
+.section-nav {
+  position: sticky;
+  top: var(--pd-header-height);
+  z-index: 30;
+  display: flex;
+  overflow-x: auto;
+  background: color-mix(in srgb, var(--pd-bg) 88%, transparent);
+  border-bottom: 1px solid var(--pd-line-strong);
+  backdrop-filter: blur(14px);
+}
+.section-nav a {
+  flex: 0 0 auto;
+  padding: 14px 18px;
+  border-right: 1px solid var(--pd-line);
+  color: var(--pd-ink-soft);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.section-nav a:hover { color: var(--pd-primary); }
+.section-anchor { scroll-margin-top: calc(var(--pd-header-height) + 52px); }
+.quote { background: #07080a; color: #f4f1ea; }
 .quote-box {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 18px;
-  border-left: 3px solid var(--color-primary);
-  padding-left: clamp(20px, 4vw, 40px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(8px, 2vw, 20px) 0 clamp(8px, 2vw, 20px) clamp(18px, 3vw, 28px);
+  border-left: 3px solid var(--pd-primary);
 }
-.quote .body-text { color: var(--color-text-dark-secondary); margin: 0; }
+.quote h2 { color: #f4f1ea; }
+.quote .body-text { color: rgba(244, 241, 234, .7); }
+.quote-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.quote-mail { border-color: rgba(244, 241, 234, .4); color: #f4f1ea; }
+.quote-mail:hover { border-color: var(--pd-accent); color: var(--pd-accent); }
+@media (max-width: 700px) {
+  .hero { min-height: 0; padding-top: 72px; }
+  .hero-stat { border-right: 0; border-bottom: 1px solid rgba(244, 241, 234, .12); }
+}
 </style>

@@ -360,7 +360,7 @@ const statItems = computed(() =>
 .intro-image {
   flex: 1;
   min-width: 300px;
-  border-radius: 12px;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
@@ -429,7 +429,7 @@ const statItems = computed(() =>
   height: 20px;
   background: linear-gradient(to top, #e6f7ff, #d9f7be);
   color: #0a4f7a;
-  border-radius: 0 0 40px 40px;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -444,7 +444,7 @@ const statItems = computed(() =>
 .timeline-content {
   background: white;
   padding: 25px;
-  border-radius: 12px;
+  border-radius: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border-left: 4px solid #1888c8;
 }
@@ -485,7 +485,7 @@ const statItems = computed(() =>
 
 .team-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 0;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
@@ -549,7 +549,7 @@ const statItems = computed(() =>
 .value-card {
   text-align: center;
   padding: 40px 20px;
-  border-radius: 12px;
+  border-radius: 0;
   background: #f8f9fa;
   transition: transform 0.3s ease;
 }
@@ -612,7 +612,7 @@ const statItems = computed(() =>
 
 .stat-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 30px 20px;
   text-align: center;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -702,7 +702,7 @@ const statItems = computed(() =>
     width: 50px;
     height: 12px;
     font-size: 9px;
-    border-radius: 0 0 25px 25px;
+    border-radius: 0;
     background: linear-gradient(to top, #e6f7ff, #d9f7be);
     color: #0a4f7a;
     border-top: 1px solid #b7eb8f;
@@ -729,7 +729,7 @@ const statItems = computed(() =>
 
   .contact-content {
     padding: 40px 24px;
-    border-radius: 16px;
+    border-radius: 0;
   }
 }
 
@@ -761,7 +761,7 @@ const statItems = computed(() =>
 
   .contact-content {
     padding: 32px 20px;
-    border-radius: 12px;
+    border-radius: 0;
   }
 
   .contact-title {

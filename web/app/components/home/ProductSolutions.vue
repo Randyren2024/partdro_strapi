@@ -1,40 +1,69 @@
 <template>
   <section class="solutions section">
     <div class="container">
-      <h2 class="section-title">{{ t('products.title') }}</h2>
-      <p class="section-subtitle">{{ t('products.subtitle') }}</p>
+      <p class="eyebrow">{{ t("products.viewAll") }}</p>
+      <h2 class="section-title">{{ t("products.title") }}</h2>
+      <p class="section-subtitle">{{ t("products.subtitle") }}</p>
 
-      <div class="solutions__grid">
-        <div class="solutions__card" v-for="product in products" :key="product.slug">
+      <article v-if="featured" class="solutions__feature">
+        <div class="solutions__feature-media">
+          <img
+            :src="asset(featured.heroImage?.url)"
+            :alt="featured.heroImage?.alternativeText || featured.name"
+            width="960"
+            height="640"
+          />
+          <span class="solutions__stamp">01</span>
+        </div>
+        <div class="solutions__feature-copy">
+          <p v-if="featured.category" class="eyebrow">{{ categoryLabel(featured.category) }}</p>
+          <h3>{{ featured.name }}</h3>
+          <p>{{ featured.tagline || featured.subtitle }}</p>
+          <router-link :to="lp('/products/' + featured.slug)" class="pd-btn pd-btn--solid">
+            {{ t("products.viewDetails") }}
+          </router-link>
+        </div>
+      </article>
+
+      <div v-if="rest.length" class="solutions__grid">
+        <router-link
+          v-for="(product, index) in rest"
+          :key="product.slug"
+          class="solutions__card"
+          :to="lp('/products/' + product.slug)"
+        >
           <div class="solutions__card-image">
-            <img :src="asset(product.heroImage?.url)" :alt="product.heroImage?.alternativeText || product.name" loading="lazy" decoding="async" width="640" height="420" />
-            <div v-if="product.category" class="solutions__card-category">{{ categoryLabel(product.category) }}</div>
+            <img
+              :src="asset(product.heroImage?.url)"
+              :alt="product.heroImage?.alternativeText || product.name"
+              loading="lazy"
+              decoding="async"
+              width="640"
+              height="420"
+            />
           </div>
           <div class="solutions__card-body">
+            <span class="solutions__stamp">{{ String(index + 2).padStart(2, "0") }}</span>
+            <p v-if="product.category" class="solutions__cat">{{ categoryLabel(product.category) }}</p>
             <h3>{{ product.name }}</h3>
             <p>{{ product.tagline || product.subtitle }}</p>
-            <router-link :to="lp('/products/' + product.slug)" class="solutions__card-link">
-              {{ t('products.viewDetails') }}
-              <RightOutlined />
-            </router-link>
+            <span class="solutions__go">{{ t("products.viewDetails") }}</span>
           </div>
-        </div>
+        </router-link>
       </div>
 
       <div class="solutions__cta">
-        <a-button type="primary" size="large" @click="$router.push(lp('/products'))">
-          {{ t('products.viewAll') }}
-        </a-button>
+        <router-link :to="lp('/products')" class="pd-btn">{{ t("products.viewAll") }}</router-link>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { RightOutlined } from '@ant-design/icons-vue'
-import { useLocalePath } from '../../composables/useLocalePath'
-import { useStrapiAsset } from '../../composables/useStrapiAsset'
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { useLocalePath } from "../../composables/useLocalePath";
+import { useStrapiAsset } from "../../composables/useStrapiAsset";
 
 type ProductCard = {
   slug: string
@@ -45,43 +74,92 @@ type ProductCard = {
   heroImage?: { url: string; alternativeText?: string | null } | null
 }
 
-const { t } = useI18n()
-const lp = useLocalePath()
-const asset = useStrapiAsset()
+const { t } = useI18n();
+const lp = useLocalePath();
+const asset = useStrapiAsset();
 
-const { data: products } = await useFetch<ProductCard[]>('/api/products', {
-  key: 'home-products',
+const { data: products } = await useFetch<ProductCard[]>("/api/products", {
+  key: "home-products",
   default: () => [],
-})
+});
+
+const featured = computed(() => products.value?.[0] ?? null);
+const rest = computed(() => (products.value ?? []).slice(1, 4));
 
 const categoryLabel = (cat: string) => {
-  const key = `products.category.${cat}`
-  return t(key) === key ? cat : t(key)
-}
+  const key = `products.category.${cat}`;
+  return t(key) === key ? cat : t(key);
+};
 </script>
 
 <style scoped>
+.solutions__feature {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  margin-top: 32px;
+  border: 1px solid var(--pd-line-strong);
+  background: var(--pd-surface);
+}
+.solutions__feature-media {
+  position: relative;
+  min-height: 360px;
+  background: #07080a;
+}
+.solutions__feature-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.solutions__feature-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: clamp(24px, 4vw, 48px);
+}
+.solutions__feature-copy h3 {
+  margin: 0 0 12px;
+  font-size: clamp(2.6rem, 4vw, 4.2rem);
+  line-height: .9;
+  text-transform: uppercase;
+}
+.solutions__feature-copy p:last-of-type {
+  margin: 0 0 24px;
+  color: var(--pd-ink-soft);
+}
+.solutions__stamp {
+  color: var(--pd-accent);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  letter-spacing: .16em;
+}
+.solutions__feature-media .solutions__stamp {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  padding: 6px 8px;
+  color: var(--pd-accent);
+  background: rgba(7, 8, 10, .72);
+}
 .solutions__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(16px, 2vw, 26px);
+  margin-top: 0;
+  border: 1px solid var(--pd-line-strong);
+  border-top: 0;
 }
 .solutions__card {
-  overflow: hidden;
-  border: 1px solid var(--pd-line);
-  border-radius: var(--pd-radius-lg);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--pd-line);
   background: var(--pd-surface);
-  box-shadow: var(--pd-shadow-sm);
-  transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+  color: inherit;
 }
-.solutions__card:hover {
-  transform: translateY(-5px);
-  border-color: color-mix(in srgb, var(--pd-primary) 42%, var(--pd-line));
-  box-shadow: var(--pd-shadow);
-}
+.solutions__card:last-child { border-right: 0; }
+.solutions__card:hover { background: color-mix(in srgb, var(--pd-primary) 7%, var(--pd-surface)); }
 .solutions__card-image {
-  position: relative;
-  height: clamp(210px, 22vw, 260px);
+  height: 210px;
   overflow: hidden;
   background: var(--pd-bg-soft);
 }
@@ -89,73 +167,56 @@ const categoryLabel = (cat: string) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform .5s ease;
+  transition: transform .45s ease;
 }
-.solutions__card:hover .solutions__card-image img {
-  transform: scale(1.045);
-}
-.solutions__card-category {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 6px 11px;
-  border: 1px solid color-mix(in srgb, var(--pd-primary) 42%, rgba(255,255,255,.22));
-  border-radius: 999px;
-  color: #fff;
-  background: rgba(8, 10, 12, .88);
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-  backdrop-filter: blur(8px);
-}
+.solutions__card:hover img { transform: scale(1.04); }
 .solutions__card-body {
   display: flex;
-  min-height: 205px;
+  flex: 1;
   flex-direction: column;
   align-items: flex-start;
-  padding: 22px 23px 24px;
+  gap: 8px;
+  padding: 18px 18px 22px;
+}
+.solutions__cat {
+  margin: 0;
+  color: var(--pd-primary);
+  font-family: var(--pd-font-mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
 }
 .solutions__card-body h3 {
-  margin-bottom: 10px;
-  color: var(--pd-ink);
-  font-size: 21px;
-  font-weight: 760;
-  letter-spacing: -.025em;
-  line-height: 1.2;
+  margin: 0;
+  font-size: 1.7rem;
+  line-height: .95;
+  text-transform: uppercase;
 }
 .solutions__card-body p {
-  margin-bottom: 18px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  margin: 0;
   color: var(--pd-ink-soft);
   font-size: 14px;
-  line-height: 1.7;
 }
-.solutions__card-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
+.solutions__go {
   margin-top: auto;
   color: var(--pd-primary);
-  font-weight: 750;
-  font-size: 14px;
-  transition: gap .18s ease;
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
-.solutions__card-link:hover {
-  gap: 11px;
-}
-.solutions__cta {
-  margin-top: 42px;
-  text-align: center;
-}
-.solutions__cta :deep(.ant-btn) {
-  height: 48px;
-  padding: 0 24px;
-  font-weight: 700;
-}
-@media (max-width: 992px) {
-  .solutions__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 576px) {
+.solutions__cta { margin-top: 28px; }
+.solutions__cta .pd-btn { color: var(--pd-ink); border-color: var(--pd-ink); }
+.solutions__cta .pd-btn:hover { color: var(--pd-primary); border-color: var(--pd-primary); }
+
+@media (max-width: 980px) {
+  .solutions__feature,
   .solutions__grid { grid-template-columns: 1fr; }
+  .solutions__card { border-right: 0; border-bottom: 1px solid var(--pd-line); }
+  .solutions__card:last-child { border-bottom: 0; }
 }
 </style>
