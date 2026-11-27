@@ -1,0 +1,31 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openrouter/baidu/ernie-5.5-flash-preview:free",
+  "small_model": "openrouter/baidu/ernie-5.5-flash-preview:free",
+  "provider": {
+    "openrouter": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OpenRouter",
+      "options": {
+        "baseURL": "https://openrouter.ai/api/v1",
+        "apiKey": "{env:AI_API_KEY}"
+      },
+      "models": {
+        "baidu/ernie-5.5-flash-preview:free": {
+          "name": "ERNIE 5.5 Flash Preview (free)",
+          "tool_call": true,
+          "reasoning": true,
+          "limit": {
+            "context": 1024000,
+            "output": 32768
+          }
+        }
+      }
+    }
+  },
+  "permission": {
+    "edit": "allow",
+    "bash": "allow",
+    "webfetch": "deny"
+  }
+}
