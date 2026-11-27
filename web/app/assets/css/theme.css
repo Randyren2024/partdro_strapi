@@ -1,31 +1,29 @@
-/* Compatibility layer: the storefront product pages were written against the
-   previous AntD-flavoured token names. Map them onto the Partdro (legacy) system
-   so both the ported marketing pages and the product pages share one visual language. */
+/* Compatibility map for product sections written against the older token names. */
 :root {
   --font-display: var(--pd-font-display);
   --font-body: var(--pd-font);
-  --font-family-code: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-family-code: var(--pd-font-mono);
   --font-size: 16px;
-  --font-size-sm: 14px;
+  --font-size-sm: 13px;
 
-  --radius-sm: 10px;
-  --radius: var(--pd-radius);
-  --radius-lg: var(--pd-radius-lg);
+  --radius-sm: 0px;
+  --radius: 0px;
+  --radius-lg: 0px;
 
-  --box-shadow: var(--pd-shadow-sm);
-  --box-shadow-tertiary: var(--pd-shadow);
+  --box-shadow: none;
+  --box-shadow-tertiary: none;
   --motion-duration: .2s;
   --motion-ease: cubic-bezier(.2, .7, .3, 1);
 
   --color-primary: var(--pd-primary);
   --color-primary-active: var(--pd-primary-hover);
   --color-primary-light: #ffb066;
-  --color-primary-bg: rgba(232, 93, 42, .1);
-  --color-primary-border: rgba(232, 93, 42, .34);
+  --color-primary-bg: color-mix(in srgb, var(--pd-primary) 12%, transparent);
+  --color-primary-border: color-mix(in srgb, var(--pd-primary) 40%, transparent);
 
   --color-bg-container: var(--pd-surface);
-  --color-bg-dark: #0a0c0e;
-  --color-bg-dark-elevated: #121619;
+  --color-bg-dark: #07080a;
+  --color-bg-dark-elevated: #14181d;
   --color-border: var(--pd-line);
   --color-border-secondary: var(--pd-line-strong);
   --color-fill-tertiary: rgba(127, 127, 127, .12);
@@ -33,10 +31,10 @@
   --color-text: var(--pd-ink);
   --color-text-secondary: var(--pd-ink-soft);
   --color-text-tertiary: var(--pd-ink-muted);
-  --color-text-inverse: #ffffff;
-  --color-text-dark: #f4f5f6;
-  --color-text-dark-secondary: #9ba3a9;
-  --color-text-dark-tertiary: #6f777d;
+  --color-text-inverse: #fffaf6;
+  --color-text-dark: #f4f1ea;
+  --color-text-dark-secondary: #a7b0b6;
+  --color-text-dark-tertiary: #6e787e;
 
   --color-success: #2f9e63;
   --color-error: #d94a3d;
@@ -44,43 +42,62 @@
 }
 
 .dark {
-  --color-primary-bg: rgba(255, 106, 26, .14);
-  --color-primary-border: rgba(255, 106, 26, .4);
+  --color-primary-bg: color-mix(in srgb, var(--pd-primary) 16%, transparent);
+  --color-primary-border: color-mix(in srgb, var(--pd-primary) 46%, transparent);
   --color-text-inverse: #140900;
 }
 
-/* Shared helpers used by the ported marketing pages. */
 .section {
-  padding: var(--pd-section-space, clamp(76px, 9vw, 120px)) 0;
+  padding: var(--pd-section-space, clamp(72px, 8vw, 112px)) 0;
 }
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+  margin: 0 0 12px;
   color: var(--pd-primary);
-  font-size: .78rem;
-  font-weight: 800;
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-weight: 500;
   letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--pd-primary);
+}
+
+.section h2 {
+  margin: 0;
+  color: var(--pd-ink);
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
   text-transform: uppercase;
 }
 
 .body-text {
   max-width: 68ch;
+  margin: 16px 0 0;
   color: var(--pd-ink-soft);
-  font-size: 1rem;
-  line-height: 1.75;
+  font-size: 1.05rem;
+  line-height: 1.7;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
-  border: 1px solid var(--pd-line);
-  border-radius: 999px;
-  background: var(--pd-surface);
-  color: var(--pd-ink-soft);
-  font-size: .78rem;
-  font-weight: 600;
+  padding: 4px 8px;
+  border: 1px solid var(--pd-line-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--pd-accent);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }

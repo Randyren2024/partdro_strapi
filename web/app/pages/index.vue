@@ -2,6 +2,7 @@
   <div class="home-page">
     <HeroBanner />
     <CompanyStats />
+    <MissionsRail />
     <ProductSolutions />
     <LatestNews />
   </div>
