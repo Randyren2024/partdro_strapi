@@ -18,7 +18,7 @@ const PY = path.join(HOME_DIR, '.venv', 'bin', 'python');
 const INGEST = path.join(HOME_DIR, 'web', 'scripts', 'ingest', 'ingest.py');
 const WORK = path.join(STATE, 'work');
 
-const OPENCODE = process.env.OPENCODE_BIN || '/usr/bin/opencode';
+const OPENCODE = process.env.OPENCODE_BIN || 'opencode';
 const OPENCODE_CONFIG = process.env.OPENCODE_CONFIG || '/etc/partdro/opencode.json';
 const MODEL = process.env.AI_MODEL || 'baidu/ernie-5.5-flash-preview:free';
 const SITE = process.env.PARTDRO_SITE_URL || 'http://169.58.136.188';
