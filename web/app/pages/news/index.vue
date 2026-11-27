@@ -43,7 +43,8 @@ import { useI18n } from 'vue-i18n'
 import { RightOutlined } from '@ant-design/icons-vue'
 import { useLocalePath } from '~/composables/useLocalePath'
 import { useStrapiAsset } from '~/composables/useStrapiAsset'
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from '~/i18n'
+import { useSeo } from '~/composables/useSeo'
+import { DEFAULT_LOCALE } from '~/i18n'
 
 type NewsCard = {
   slug: string
@@ -71,49 +72,28 @@ const canonicalUrl = computed(() =>
   locale.value === DEFAULT_LOCALE ? `${SITE_URL}/news` : `${SITE_URL}/${locale.value}/news`,
 )
 
-useHead(() => ({
-  title: t('news.title'),
-  titleTemplate: '%s | Partdro',
-  htmlAttrs: { lang: locale.value },
-  link: [
-    { rel: 'canonical', href: canonicalUrl.value },
-    ...SUPPORTED_LOCALES.map((lang) => ({
-      rel: 'alternate',
-      hreflang: lang,
-      href: lang === DEFAULT_LOCALE ? `${SITE_URL}/news` : `${SITE_URL}/${lang}/news`,
-    })),
-    { rel: 'alternate', hreflang: 'x-default', href: `${SITE_URL}/news` },
-  ],
-  meta: [
-    { name: 'description', content: t('news.subtitle') },
-    { name: 'robots', content: 'index, follow, max-image-preview:large' },
-    { property: 'og:type', content: 'website' },
-    { property: 'og:title', content: t('news.title') },
-    { property: 'og:description', content: t('news.subtitle') },
-    { property: 'og:url', content: canonicalUrl.value },
-  ],
-  script: [
-    {
-      type: 'application/ld+json',
-      innerHTML: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'CollectionPage',
-        name: t('news.title'),
-        description: t('news.subtitle'),
-        url: canonicalUrl.value,
-        mainEntity: {
-          '@type': 'ItemList',
-          itemListElement: posts.value.slice(0, 30).map((p, i) => ({
-            '@type': 'ListItem',
-            position: i + 1,
-            url: `${SITE_URL}${locale.value === DEFAULT_LOCALE ? '' : `/${locale.value}`}/news/${p.slug}`,
-            name: p.title,
-          })),
-        },
-      }),
+useSeo({
+  title: () => t('meta.news.title'),
+  description: () => t('meta.news.description'),
+  path: '/news',
+  type: () => 'website',
+  jsonLd: () => ({
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: t('news.title'),
+    description: t('news.subtitle'),
+    url: canonicalUrl.value,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: (posts.value ?? []).slice(0, 30).map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${SITE_URL}${locale.value === DEFAULT_LOCALE ? '' : `/${locale.value}`}/news/${p.slug}`,
+        name: p.title,
+      })),
     },
-  ],
-}))
+  }),
+})
 </script>
 
 <style scoped>

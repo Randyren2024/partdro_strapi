@@ -29,11 +29,15 @@ Open `http://localhost:3000/ingest` (start with `npm run dev` in `web/`), upload
 
 ```powershell
 python web/scripts/ingest/ingest.py "PDF_PATH_OR_URL" --out .tmp/ingest/SLUG
-# add --post to write to Strapi, --publish to also publish
+# add --post to write a draft, --publish to also publish
 # stop early: --skip-ai (extraction only), --skip-extract (source is an extraction.json)
+# URL example:
+python web/scripts/ingest/ingest.py "https://www.jouav.com/products/aq600.html" --out .tmp/ingest/aq600-url
 ```
 
 Useful flags: `--model`, `--max-chars` (30000), `--retries` (2), `--publish` requires `--post`.
+
+Publication state is always explicit: `--post` sends `?status=draft`, `--publish` sends `?status=published`. Strapi 5.63's REST API **publishes on create/update when no `status` param is present**, so never rely on the default. A `--post`-only run prints `published=False` and leaves `publishedAt` null.
 
 Re-running the same source is safe: the slug is looked up first and an existing document is `PUT` instead of duplicated. Uploaded media with the same filename is reused.
 
@@ -49,9 +53,18 @@ Output dir defaults to a temp dir; pass `--out` to keep artifacts. The API route
 
 ### 1. Extraction
 
-`pdf_extract.py PDF_PATH --out OUT_DIR [--ocr auto|always|never] [--min-width 240] [--min-height 160] [--min-bytes 12000] [--max-images 80]`. It records text, headings, tables, and per-image metadata (`file`, `width`, `height`, `bytes`, `page`, `bbox`, `pages`, `duplicate`).
+**PDF** — `pdf_extract.py PDF_PATH --out OUT_DIR [--ocr auto|always|never] [--min-width 240] [--min-height 160] [--min-bytes 12000] [--max-images 80]`. Records text, headings, tables, and per-image metadata (`file`, `width`, `height`, `bytes`, `page`, `bbox`, `pages`, `duplicate`).
 
-`url_extract.py URL --out OUT_DIR [--max-images 80]` produces the same schema.
+**URL** — `url_extract.py URL --out OUT_DIR [--max-images 80]`. Same schema; the page text lands in `pages[0].text`, with `source.finalUrl`, `source.title` and `source.description` on the root. The script prints `{chars, headings, tables, images, title}` — check it before paying for an AI call. Behaviour that matters:
+
+- The page is fetched once with `requests`; **no JavaScript runs**. If the copy is hydrated by XHR, extraction returns navigation text only. A lower-grade but usable fallback is to save the rendered page as PDF and feed that to `pdf_extract.py`.
+- Product photos are often lazy-loaded: `src` points at a placeholder (`imgbg.png`) while the real file sits in `data-src` / `data-original` / `data-lazy-src` / `data-url`. `_image_candidates` tries those attributes first and sorts placeholder markers last.
+- Images download with `Referer: <final page URL>`; some CDNs (e.g. `img.wds168.cn`) return 403 to bare requests.
+- Some WAFs drop a browser User-Agent coming from a non-browser TLS stack (`eauav.com` answers `RemoteDisconnected`). `fetch_html` retries once with `curl/8.4.0` and the image downloads reuse whichever UA got the page.
+- `width` / `height` are measured with PyMuPDF after download, so `_select_images` can rank them. URL images have no `page` / `bbox`, so the full-page-artwork heuristic never applies to them.
+- `MIN_IMAGE_BYTES` is 12 KB. Icon sprites and arrows still slip through, but `_select_images` drops them by pixel size (`width < 500`, `height < 320`).
+
+Qualify the source before ingesting: `chars < 1500` or only sub-500 px images means the page is a catalog shell, not a datasheet. Example — `droneyee.com/Product/706527.html` prints `chars: 1141, images: 5` (110×110 thumbnails, detail lives in an AJAX tab), while `jouav.com/products/aq600.html` prints `chars: 5009, images: 10` and yields 6 sections. Prefer the vendor PDF or an English product page when both exist.
 
 ### 2. AI extraction
 
@@ -78,15 +91,18 @@ Slots are filled by aspect closeness, `abs(log(aspect / target))`, tie-broken by
 ## Verify before reporting success
 
 1. `product.json` exists and `sections` is non-empty; all copy is English (no CJK).
-2. `strapi_response.json` shows a real `id` / `documentId`; when publishing, `publishedAt` is non-null.
+2. `strapi_response.json` shows a real `id` / `documentId`; `--post` alone keeps `publishedAt` null, `--publish` sets it.
 3. Open `http://localhost:3000/products/SLUG`: hero and section images render, no broken thumbnails, no full-page scans used as photos.
 4. Spot-check semantics, not just aspect ratio — spec screenshots and diagrams can win a photo slot. Describe candidates with `bl vision describe --image IMAGE_PATH --prompt "what is in this image?" --output json --quiet` and rebind manually when wrong.
 
 ## Troubleshooting
 
+- **URL returns nav-only text or 0 images** — the page is JS-rendered or gates assets behind AJAX. Check the printed `chars`/`images`; fall back to the vendor PDF, or save the rendered page as PDF and run `pdf_extract.py`. Hand-built `extraction.json` + `--skip-extract` also works.
+- **URL images 403 / time out** — `url_extract.py` already sends the page as `Referer`; if the CDN still refuses, the source needs cookies/JS, so take the PDF route.
 - **400 `Invalid key __component at sections`** — each dynamic-zone entry must have `__component` as its first key.
 - **Broken thumbnails in Strapi admin only** — admin CSP blocks external media. Keep the Supabase origin in [middlewares.ts](file:///c:/Users/81102/Desktop/partdro/cms/config/middlewares.ts), then restart Strapi.
 - **403 on POST** — read-only token. Use the Full Access token.
+- **`--post` produced a live entry** — Strapi 5.63 publishes on write unless the request passes `?status=draft`. `ingest.py` now always sends the status; for older runs, `PUT /api/products/<documentId>?status=draft` only updates the draft version, so delete and re-run to get a real draft.
 - **Empty progress in UI** — Python buffering; the route already sets `PYTHONUNBUFFERED=1`.
 - **Strapi timeout / slow PUT** — Supabase pooler can take ~30s; the client allows 180s.
 - **404 on media files** — confirm the Supabase bucket is public and the upload provider env (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`) is set.

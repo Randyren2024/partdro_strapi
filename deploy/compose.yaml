@@ -1,0 +1,43 @@
+name: partdro
+
+services:
+  cms:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.cms
+    image: partdro-cms:latest
+    restart: unless-stopped
+    env_file: ./env/cms.env
+    ports:
+      # Admin is bound to loopback; reach it through an SSH tunnel.
+      - "127.0.0.1:1337:1337"
+    volumes:
+      - cms-uploads:/app/public/uploads
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    image: partdro-web:latest
+    restart: unless-stopped
+    env_file: ./env/web.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - cms
+
+  bot:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.bot
+    image: partdro-bot:latest
+    restart: unless-stopped
+    env_file: ./env/bot.env
+    volumes:
+      - partdro-data:/var/lib/partdro
+    depends_on:
+      - cms
+
+volumes:
+  cms-uploads:
+  partdro-data:

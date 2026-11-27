@@ -17,6 +17,12 @@ const MEDIA_FIELDS = ['url', 'alternativeText', 'width', 'height', 'mime', 'name
 // Dynamic zones need the `on` key per component — a plain `populate` object is
 // rejected by Strapi 5 with "Invalid key populate at sections".
 export const productPopulate = {
+  seo: {
+    populate: {
+      metaImage: { fields: MEDIA_FIELDS },
+      metaSocial: { populate: { image: { fields: MEDIA_FIELDS } } },
+    },
+  },
   heroImage: { fields: MEDIA_FIELDS },
   heroStats: true,
   quoteCta: true,
@@ -81,12 +87,25 @@ function toStrapiQuery(params: Record<string, unknown>, prefix = ''): Record<str
 export async function strapiFetch<T>(path: string, query?: Record<string, unknown>): Promise<T> {
   const config = useRuntimeConfig()
   const flatQuery = query ? toStrapiQuery(query) : undefined
-  return await $fetch<T>(`${config.public.strapiUrl}${path}`, {
-    query: flatQuery,
-    headers: config.strapiToken
-      ? { Authorization: `Bearer ${config.strapiToken}` }
-      : {},
-  })
+  try {
+    return await $fetch<T>(`${config.public.strapiUrl}${path}`, {
+      query: flatQuery,
+      headers: config.strapiToken
+        ? { Authorization: `Bearer ${config.strapiToken}` }
+        : {},
+      // Fail fast so callers can fall back instead of hanging on a down/slow host.
+      // 15s tolerates a cold Strapi/Supabase on first (seeding) requests; the live
+      // deployment uses snapshot-only mode and never reaches this path.
+      timeout: 15000,
+    })
+  } catch (err: any) {
+    // Surface a typed error the data layer can branch on.
+    throw createError({
+      statusCode: err?.statusCode || 502,
+      statusMessage: `Strapi unreachable: ${err?.message || 'request failed'}`,
+      cause: err,
+    })
+  }
 }
 
 export type { StrapiMedia }

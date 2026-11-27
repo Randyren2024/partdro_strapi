@@ -25,9 +25,17 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
 )
+# Some WAFs (e.g. eauav.com) drop browser User-Agents coming from a
+# non-browser TLS stack and close the connection; a plain client UA passes.
+FALLBACK_USER_AGENT = "curl/8.4.0"
 
 IMG_EXTS = {"png", "jpg", "jpeg", "webp", "gif", "svg"}
 MIN_IMAGE_BYTES = 12000
+
+# Lazy-loading templates keep the real file in a data-* attribute and leave
+# `src` pointing at a blank placeholder, so try the real sources first.
+IMG_ATTRS = ("data-src", "data-original", "data-lazy-src", "data-lazy", "data-url", "url", "src")
+PLACEHOLDER_MARKERS = ("/images/imgbg", "nopic.gif", "placeholder", "blank.gif", "spacer.gif")
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -51,14 +59,21 @@ def clean_text(value: str) -> str:
     return value.strip()
 
 
-def fetch_html(url: str, timeout: int = 30) -> tuple[str, str, dict]:
-    """Return (final_url, html_text, response_headers)."""
-    resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout)
-    resp.raise_for_status()
-    content_type = resp.headers.get("Content-Type", "")
-    if "charset" not in content_type.lower():
-        resp.encoding = resp.apparent_encoding or "utf-8"
-    return resp.url, resp.text, dict(resp.headers)
+def fetch_html(url: str, timeout: int = 30) -> tuple[str, str, dict, str]:
+    """Return (final_url, html_text, response_headers, user_agent_used)."""
+    last_error: Exception | None = None
+    for ua in (USER_AGENT, FALLBACK_USER_AGENT):
+        try:
+            resp = requests.get(url, headers={"User-Agent": ua}, timeout=timeout)
+            resp.raise_for_status()
+        except requests.ConnectionError as exc:
+            last_error = exc
+            continue
+        content_type = resp.headers.get("Content-Type", "")
+        if "charset" not in content_type.lower():
+            resp.encoding = resp.apparent_encoding or "utf-8"
+        return resp.url, resp.text, dict(resp.headers), ua
+    raise last_error  # type: ignore[misc]
 
 
 def extract_headings(soup: BeautifulSoup) -> list[dict]:
@@ -103,33 +118,60 @@ def _absolute_img_url(src: str, base: str) -> str | None:
     return url
 
 
+def _image_candidates(tag, base_url: str) -> list[str]:
+    """Every usable URL on an <img>, real sources before placeholders."""
+    urls: list[str] = []
+    for attr in IMG_ATTRS:
+        url = _absolute_img_url((tag.get(attr) or "").strip(), base_url)
+        if url and url not in urls:
+            urls.append(url)
+    urls.sort(key=lambda u: any(m in u.lower() for m in PLACEHOLDER_MARKERS))
+    return urls
+
+
+def _image_size(path: Path) -> tuple[int | None, int | None]:
+    """Read pixel dimensions so ingest can rank images by area/aspect."""
+    try:
+        import fitz
+
+        pix = fitz.Pixmap(str(path))
+        return pix.width, pix.height
+    except Exception:
+        return None, None
+
+
 def extract_images(
     soup: BeautifulSoup,
     base_url: str,
     out_dir: Path,
     max_images: int = 80,
     seen: dict[str, dict] | None = None,
+    user_agent: str = USER_AGENT,
 ) -> list[dict]:
     if seen is None:
         seen = {}
     images: list[dict] = []
     for tag in soup.find_all("img"):
-        src = tag.get("src") or tag.get("data-src") or tag.get("data-lazy-src") or ""
-        url = _absolute_img_url(src, base_url)
+        url = ""
+        data = b""
+        # Hotlink-protected CDNs require the page as Referer.
+        headers = {"User-Agent": user_agent, "Referer": base_url}
+        for candidate in _image_candidates(tag, base_url):
+            try:
+                resp = requests.get(candidate, headers=headers, timeout=20)
+                resp.raise_for_status()
+            except Exception:
+                continue
+            if len(resp.content) < MIN_IMAGE_BYTES:
+                continue
+            url, data = candidate, resp.content
+            break
         if not url:
             continue
         filename = Path(urlparse(url).path).name
         ext = Path(filename).suffix.lstrip(".").lower() or "jpg"
         if ext not in IMG_EXTS:
             ext = "jpg"
-        try:
-            resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=20)
-            resp.raise_for_status()
-            data = resp.content
-        except Exception:
-            continue
-        if len(data) < MIN_IMAGE_BYTES:
-            continue
         digest = sha256_bytes(data)
         if digest in seen:
             continue
@@ -138,6 +180,7 @@ def extract_images(
         image_id = f"img{len(seen) + 1}-{digest[:8]}"
         safe_filename = f"{image_id}.{ext}"
         (out_dir / safe_filename).write_bytes(data)
+        width, height = _image_size(out_dir / safe_filename)
         alt = tag.get("alt", "") or ""
         entry = {
             "id": image_id,
@@ -146,8 +189,8 @@ def extract_images(
             "alt": alt[:200],
             "bytes": len(data),
             "sha256": digest,
-            "width": None,
-            "height": None,
+            "width": width,
+            "height": height,
             "caption": None,
             "duplicate": False,
         }
@@ -168,7 +211,7 @@ def main() -> int:
     images_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        final_url, html, headers = fetch_html(args.url)
+        final_url, html, headers, user_agent = fetch_html(args.url)
     except requests.RequestException as exc:
         print(json.dumps({"ok": False, "error": f"Failed to fetch: {exc}"}), file=sys.stderr)
         return 2
@@ -181,7 +224,7 @@ def main() -> int:
 
     headings = extract_headings(soup)
     tables = extract_tables(soup)
-    images = extract_images(soup, final_url, images_dir, args.max_images)
+    images = extract_images(soup, final_url, images_dir, args.max_images, user_agent=user_agent)
     seen = {img["sha256"]: img for img in images}
 
     raw_text = clean_text(soup.get_text("\n", strip=True))

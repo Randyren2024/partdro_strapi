@@ -176,10 +176,17 @@ import {
 } from '@ant-design/icons-vue'
 import { trackEvent } from '~/composables/useTracking'
 import { useLocalePath } from '~/composables/useLocalePath'
+import { useSeo } from '~/composables/useSeo'
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const lp = useLocalePath()
+
+useSeo({
+  title: () => t('meta.about.title'),
+  description: () => t('meta.about.description'),
+  path: '/about',
+})
 
 // 图片由 legacy 素材静态提供
 function imgEdit(defaultSrc: string, _key?: string): string {

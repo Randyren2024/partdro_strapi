@@ -1,0 +1,41 @@
+# One image carries the whole ingest toolchain: opencode (agent), python + PyMuPDF
+# (extraction/AI), tesseract (OCR) and the bot itself.
+FROM node:22-bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      python3 python3-venv python3-pip \
+      tesseract-ocr tesseract-ocr-eng tesseract-ocr-chi-sim \
+      libgl1 libglib2.0-0 ca-certificates curl git ripgrep \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g opencode-ai \
+    && ln -sf /usr/bin/python3 /usr/local/bin/python
+
+ENV HOME=/home/partdro \
+    PARTDRO_HOME=/opt/partdro \
+    PARTDRO_STATE=/var/lib/partdro
+RUN mkdir -p /home/partdro/.config/opencode/skills /var/lib/partdro
+
+WORKDIR /opt/partdro
+COPY . ./
+
+# Pinned in requirements.txt (PyMuPDF 1.28.2): 2.x silently loses table detection.
+RUN python3 -m venv /opt/partdro/.venv \
+    && /opt/partdro/.venv/bin/pip install --no-cache-dir -r web/scripts/ingest/requirements.txt
+
+# opencode discovers skills under $HOME/.config/opencode/skills
+RUN cp -r /opt/partdro/.opencode/skills/partdro-ingest \
+           /home/partdro/.config/opencode/skills/ \
+    && chmod -R a+rX /home/partdro
+
+COPY deploy/opencode.json /etc/partdro/opencode.json
+
+WORKDIR /opt/partdro/bot
+COPY bot/package.json bot/package-lock.json ./
+RUN npm ci --no-audit --no-fund && chmod -R a+rX /opt/partdro
+
+CMD ["node", "bot.js"]

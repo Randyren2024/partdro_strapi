@@ -58,8 +58,15 @@ import { useI18n } from 'vue-i18n'
 import { PhoneOutlined, MailOutlined, EnvironmentOutlined, ClockCircleOutlined } from '@ant-design/icons-vue'
 import InquiryForm from '~/components/common/InquiryForm.vue'
 import { trackEvent } from '~/composables/useTracking'
+import { useSeo } from '~/composables/useSeo'
 
 const { t } = useI18n({ useScope: 'global' })
+
+useSeo({
+  title: () => t('meta.contact.title'),
+  description: () => t('meta.contact.description'),
+  path: '/contact',
+})
 </script>
 
 <style scoped>

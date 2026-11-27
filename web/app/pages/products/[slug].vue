@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { MailOutlined } from '@ant-design/icons-vue'
+import { useSeo } from '~/composables/useSeo'
 
 const route = useRoute()
-const { data, error } = await useFetch(`/api/products/${route.params.slug}`) as any
+const { locale } = useI18n()
+const slug = route.params.slug as string
+
+const { data, error } = await useFetch(`/api/products/${slug}`, {
+  key: `product:${slug}`,
+  query: { locale },
+}) as any
 
 if (error.value || !data.value) {
   throw createError({ statusCode: 404, statusMessage: 'Product not found' })
@@ -23,9 +30,53 @@ const sectionMap: Record<string, any> = {
   'sections.faq': resolveComponent('FaqSection'),
 }
 
-useSeoMeta({
-  title: () => `${product.value?.name ?? 'Product'} — Partdro`,
-  description: () => product.value?.subtitle ?? '',
+const config = useRuntimeConfig()
+const SITE_URL = (config.public.siteUrl || 'https://www.droneworld.tech').replace(/\/$/, '')
+
+const heroImageUrl = computed(() => {
+  const u = product.value?.heroImage?.url
+  return u ? asset(u) : undefined
+})
+
+const seoTitle = computed(() => {
+  const base = product.value?.seo?.metaTitle || product.value?.name || 'Product'
+  return /\| Partdro/i.test(base) ? base : `${base} | Partdro`
+})
+const seoDescription = computed(
+  () => product.value?.seo?.metaDescription || product.value?.subtitle || '',
+)
+
+useSeo({
+  title: () => seoTitle.value,
+  description: () => seoDescription.value,
+  path: `/products/${slug}`,
+  image: () => heroImageUrl.value,
+  type: () => 'product',
+  jsonLd: () => {
+    const p = product.value
+    if (!p) return []
+    const url = `${SITE_URL}${locale.value === 'en' ? '' : `/${locale.value}`}/products/${slug}`
+    return [
+      {
+        '@type': 'Product',
+        name: p.name,
+        description: seoDescription.value,
+        sku: p.code,
+        url,
+        ...(heroImageUrl.value ? { image: [heroImageUrl.value] } : {}),
+        brand: { '@type': 'Brand', name: 'Partdro' },
+        manufacturer: { '@type': 'Organization', name: 'Partdro', url: SITE_URL },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Products', item: `${SITE_URL}/products` },
+          { '@type': 'ListItem', position: 3, name: p.name, item: url },
+        ],
+      },
+    ]
+  },
 })
 </script>
 

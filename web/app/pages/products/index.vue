@@ -86,6 +86,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { RightOutlined } from '@ant-design/icons-vue'
 import { useLocalePath } from '~/composables/useLocalePath'
 import { useStrapiAsset } from '~/composables/useStrapiAsset'
+import { useSeo } from '~/composables/useSeo'
 
 type ProductCategory = 'multi-mission' | 'delivery-logistics' | 'agriculture' | 'inspection-mapping' | 'other'
 
@@ -100,15 +101,43 @@ type ProductCard = {
 
 const CATEGORIES: ProductCategory[] = ['multi-mission', 'delivery-logistics', 'agriculture', 'inspection-mapping', 'other']
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const lp = useLocalePath()
 const asset = useStrapiAsset()
 
+const config = useRuntimeConfig()
+const SITE_URL = (config.public.siteUrl || 'https://www.droneworld.tech').replace(/\/$/, '')
+
 const { data: products, pending: productsLoading } = await useFetch<ProductCard[]>('/api/products', {
   key: 'products-list',
+  query: { locale },
   default: () => [],
+})
+
+useSeo({
+  title: () => t('meta.products.title'),
+  description: () => t('meta.products.description'),
+  path: '/products',
+  jsonLd: () => {
+    const url = `${SITE_URL}${locale.value === 'en' ? '' : `/${locale.value}`}/products`
+    return [
+      {
+        '@type': 'CollectionPage',
+        name: t('meta.products.title'),
+        description: t('meta.products.description'),
+        url,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: t('nav.products'), item: url },
+        ],
+      },
+    ]
+  },
 })
 const searchQuery = ref(typeof route.query.q === 'string' ? route.query.q : '')
 

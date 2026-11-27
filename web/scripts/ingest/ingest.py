@@ -365,30 +365,22 @@ def _post_to_strapi(
             if rows:
                 existing_id = rows[0].get("documentId")
 
+    # Strapi 5.63 publishes on write unless the request says otherwise, so the
+    # publication state must be explicit: ?status=draft keeps it out of the
+    # public site, ?status=published is --publish.
+    params = {"status": "published" if publish else "draft"}
+
     if existing_id:
-        print(f"   PUT {url}/{existing_id}  (slug exists, updating)")
-        resp = requests.put(f"{url}/{existing_id}", json=body, headers=headers, timeout=timeout)
+        print(f"   PUT {url}/{existing_id}  (slug exists, updating, status={params['status']})")
+        resp = requests.put(f"{url}/{existing_id}", params=params, json=body, headers=headers, timeout=timeout)
     else:
-        print(f"   POST {url}")
-        resp = requests.post(url, json=body, headers=headers, timeout=timeout)
+        print(f"   POST {url}  status={params['status']}")
+        resp = requests.post(url, params=params, json=body, headers=headers, timeout=timeout)
 
     if resp.status_code in {200, 201}:
         doc = resp.json().get("data", {})
         doc_id = doc.get("id")
         print(f"   ✓ Strapi id={doc_id}  published={doc.get('publishedAt') is not None}")
-
-        if publish and doc_id and doc.get("publishedAt") is None:
-            pub = requests.put(
-                f"{url}/{doc.get('documentId') or doc_id}",
-                json={"data": {"publishedAt": "2020-01-01T00:00:00.000Z"}},  # any non-null ISO date → publish
-                headers=headers,
-                timeout=timeout,
-            )
-            if pub.status_code in {200, 201}:
-                print(f"   ✓ Published")
-            else:
-                print(f"   ✗ Publish failed {pub.status_code}: {pub.text[:300]}", file=sys.stderr)
-
         return {"strapi_id": doc_id, "documentId": doc.get("documentId"), "attributes": doc}
 
     print(f"   ✗ Strapi {resp.status_code}: {resp.text[:600]}", file=sys.stderr)

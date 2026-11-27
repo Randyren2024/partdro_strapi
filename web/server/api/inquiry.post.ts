@@ -27,28 +27,24 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Invalid email address' })
   }
 
-  // Writes need the Full Access token; the read-only NUXT_STRAPI_TOKEN gets 403.
-  const token = process.env.NUXT_STRAPI_FULL_TOKEN || process.env.STRAPI_TOKEN
-  if (!token) {
-    throw createError({ statusCode: 503, statusMessage: 'Inquiry storage is not configured' })
+  // Store submissions directly in Supabase (the live site runs without Strapi).
+  try {
+    await insertRow('web_inquiries', {
+      name,
+      email,
+      phone: body?.phone?.trim() || null,
+      type: TYPES.includes(body?.type ?? '') ? body!.type : 'contact',
+      message,
+      page: body?.page?.slice(0, 300) || null,
+      product_slug: body?.productSlug?.slice(0, 200) || null,
+    })
+  } catch (err: any) {
+    throw createError({
+      statusCode: 503,
+      statusMessage: 'Inquiry storage is unavailable',
+      cause: err,
+    })
   }
-
-  const config = useRuntimeConfig()
-  await $fetch(`${config.public.strapiUrl}/api/inquiries`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: {
-      data: {
-        name,
-        email,
-        phone: body?.phone?.trim() || null,
-        type: TYPES.includes(body?.type ?? '') ? body?.type : 'contact',
-        message,
-        page: body?.page?.slice(0, 300) || null,
-        productSlug: body?.productSlug?.slice(0, 200) || null,
-      },
-    },
-  })
 
   return { ok: true }
 })

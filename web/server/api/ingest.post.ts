@@ -11,22 +11,31 @@
 //   {"step":"strapi","stage":"[3/3]","out":"..."}
 //   {"step":"done","ok":true,"product":{...}}
 //   {"step":"error","ok":false,"error":"..."}
-
-import { spawn } from 'node:child_process'
-import { PassThrough } from 'node:stream'
-import { mkdtemp, writeFile, rm } from 'node:fs/promises'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { tmpdir } from 'node:os'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const INGEST_SCRIPT = join(__dirname, '..', '..', 'scripts', 'ingest', 'ingest.py')
+//
+// This route needs a Node runtime (child_process + fs) and is disabled in
+// snapshot-only mode (e.g. the Cloudflare Workers deployment). Node builtins are
+// imported lazily inside the handler so the module stays Workers-safe to load.
 
 const MAX_PDF_BYTES = 80 * 1024 * 1024 // 80 MB
 
 type ProgressLine = { step: string; stage?: string; ok?: boolean; out?: string; error?: string; [k: string]: any }
 
 export default defineEventHandler(async (event) => {
+  // Snapshot-only deployments (Cloudflare) have no Python/Node runtime.
+  if (useRuntimeConfig(event).strapiDisabled === true) {
+    throw createError({ statusCode: 501, statusMessage: 'Ingest is not available on this deployment' })
+  }
+
+  const { spawn } = await import('node:child_process')
+  const { PassThrough } = await import('node:stream')
+  const { mkdtemp, writeFile, rm } = await import('node:fs/promises')
+  const { join, dirname } = await import('node:path')
+  const { fileURLToPath } = await import('node:url')
+  const { tmpdir } = await import('node:os')
+
+  const __dirname = dirname(fileURLToPath(import.meta.url))
+  const INGEST_SCRIPT = join(__dirname, '..', '..', 'scripts', 'ingest', 'ingest.py')
+
   const contentType = getRequestHeader(event, 'content-type') || ''
   const isMultipart = contentType.startsWith('multipart/form-data')
 

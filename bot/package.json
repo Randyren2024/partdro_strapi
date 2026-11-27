@@ -1,0 +1,10 @@
+{
+  "name": "partdro-feishu-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Feishu bot: PDF/URL to Partdro ingest, text to LLM with MCP tools",
+  "dependencies": {
+    "@larksuiteoapi/node-sdk": "^1.77.0"
+  }
+}

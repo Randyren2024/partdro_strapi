@@ -52,6 +52,7 @@ import { useI18n } from 'vue-i18n'
 import { LeftOutlined } from '@ant-design/icons-vue'
 import { useLocalePath } from '~/composables/useLocalePath'
 import { useStrapiAsset } from '~/composables/useStrapiAsset'
+import { useSeo } from '~/composables/useSeo'
 import { DEFAULT_LOCALE } from '~/i18n'
 
 type NewsArticle = {
@@ -62,6 +63,11 @@ type NewsArticle = {
   category: string
   publishedAt: string | null
   cover?: { url: string; alternativeText?: string | null } | null
+  seo?: {
+    metaTitle?: string | null
+    metaDescription?: string | null
+    metaImage?: { url: string; alternativeText?: string | null } | null
+  } | null
 }
 
 type NewsCard = {
@@ -113,63 +119,50 @@ const canonicalUrl = computed(() =>
   `${SITE_URL}${locale.value === DEFAULT_LOCALE ? '' : `/${locale.value}`}/news/${slug}`,
 )
 
-useHead(() => ({
-  title: post.value ? `${post.value.title} | Partdro` : 'News | Partdro',
-  titleTemplate: '%s',
-  htmlAttrs: { lang: locale.value },
-  link: [
-    { rel: 'canonical', href: canonicalUrl.value },
-    { rel: 'alternate', hreflang: 'x-default', href: `${SITE_URL}/news/${slug}` },
-  ],
-  meta: [
-    { name: 'description', content: metaDescription.value },
-    { name: 'robots', content: post.value ? 'index, follow, max-image-preview:large' : 'noindex, follow' },
-    { property: 'og:type', content: 'article' },
-    { property: 'og:site_name', content: 'Partdro' },
-    { property: 'og:title', content: post.value?.title ?? 'News' },
-    { property: 'og:description', content: metaDescription.value },
-    { property: 'og:url', content: canonicalUrl.value },
-    ...(heroImage.value ? [{ property: 'og:image', content: heroImage.value }] : []),
-    { name: 'twitter:card', content: heroImage.value ? 'summary_large_image' : 'summary' },
-    ...(post.value?.publishedAt
-      ? [{ property: 'article:published_time', content: post.value.publishedAt }]
-      : []),
-    ...(post.value?.category ? [{ property: 'article:section', content: post.value.category }] : []),
-  ],
-  script: post.value
-    ? [
-        {
-          type: 'application/ld+json',
-          innerHTML: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@graph': [
-              {
-                '@type': 'Article',
-                headline: post.value.title,
-                description: metaDescription.value,
-                url: canonicalUrl.value,
-                ...(heroImage.value ? { image: [heroImage.value] } : {}),
-                ...(post.value.publishedAt
-                  ? { datePublished: post.value.publishedAt, dateModified: post.value.publishedAt }
-                  : {}),
-                ...(post.value.category ? { articleSection: post.value.category } : {}),
-                author: { '@type': 'Organization', name: 'Partdro', url: SITE_URL },
-                publisher: { '@type': 'Organization', name: 'Partdro', url: SITE_URL },
-              },
-              {
-                '@type': 'BreadcrumbList',
-                itemListElement: [
-                  { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
-                  { '@type': 'ListItem', position: 2, name: 'News', item: `${SITE_URL}/news` },
-                  { '@type': 'ListItem', position: 3, name: post.value.title, item: canonicalUrl.value },
-                ],
-              },
-            ],
-          }),
-        },
-      ]
-    : [],
-}))
+const seoImage = computed(
+  () => post.value?.seo?.metaImage?.url || post.value?.cover?.url || undefined,
+)
+
+const ogImage = computed(() => {
+  const u = seoImage.value
+  return u ? absUrl(asset(u)) : heroImage.value
+})
+
+useSeo({
+  title: () => post.value?.seo?.metaTitle || (post.value ? `${post.value.title} | Partdro` : 'News | Partdro'),
+  description: () =>
+    post.value?.seo?.metaDescription || metaDescription.value,
+  path: `/news/${slug}`,
+  image: () => ogImage.value,
+  type: () => 'article',
+  robots: () => (post.value ? 'index, follow, max-image-preview:large' : 'noindex, follow'),
+  jsonLd: () => {
+    if (!post.value) return []
+    return [
+      {
+        '@type': 'Article',
+        headline: post.value.title,
+        description: metaDescription.value,
+        url: canonicalUrl.value,
+        ...(ogImage.value ? { image: [ogImage.value] } : {}),
+        ...(post.value.publishedAt
+          ? { datePublished: post.value.publishedAt, dateModified: post.value.publishedAt }
+          : {}),
+        ...(post.value.category ? { articleSection: post.value.category } : {}),
+        author: { '@type': 'Organization', name: 'Partdro', url: SITE_URL },
+        publisher: { '@type': 'Organization', name: 'Partdro', url: SITE_URL },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'News', item: `${SITE_URL}/news` },
+          { '@type': 'ListItem', position: 3, name: post.value.title, item: canonicalUrl.value },
+        ],
+      },
+    ]
+  },
+})
 </script>
 
 <style scoped>

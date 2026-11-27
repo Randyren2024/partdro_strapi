@@ -136,7 +136,6 @@ LIST_FIELD: dict[str, str] = {
     "sections.feature-block": "items",
     "sections.endurance": "points",
     "sections.applications": "items",
-    "sections.showcase": "items",
     "sections.editions": "rows",
     "sections.specifications": "rows",
     "sections.faq": "items",
@@ -144,7 +143,7 @@ LIST_FIELD: dict[str, str] = {
 
 ITEM_SHAPE = (
     "stats/points/rows => [{\"label\": str, \"value\": str}]; "
-    "applications.items / showcase.items => [{\"title\": str, \"description\": str}]; "
+    "applications.items => [{\"title\": str, \"description\": str}]; "
     "feature-block.items => [{\"title\": str, \"spec\": str, \"description\": str}]; "
     "faq.items => [{\"question\": str, \"answer\": str}]"
 )

@@ -34,3 +34,14 @@ supabase/.branches/
 # editor / OS
 .DS_Store
 Thumbs.db
+# local python venv
+.venv/
+
+# local backups (may contain keys)
+*.bak
+
+# cloudflare local state
+web/.wrangler/
+
+# real deploy secrets
+deploy/env/*.env
