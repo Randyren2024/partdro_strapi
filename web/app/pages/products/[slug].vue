@@ -3,6 +3,7 @@ import { MailOutlined } from '@ant-design/icons-vue'
 import { useSeo } from '~/composables/useSeo'
 
 const route = useRoute()
+const lp = useLocalePath()
 
 const sectionLabel: Record<string, string> = {
   'sections.overview': 'Overview',
