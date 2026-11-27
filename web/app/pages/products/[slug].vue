@@ -3,6 +3,22 @@ import { MailOutlined } from '@ant-design/icons-vue'
 import { useSeo } from '~/composables/useSeo'
 
 const route = useRoute()
+
+const sectionLabel: Record<string, string> = {
+  'sections.overview': 'Overview',
+  'sections.feature-block': 'Systems',
+  'sections.endurance': 'Endurance',
+  'sections.applications': 'Missions',
+  'sections.showcase': 'Field',
+  'sections.editions': 'Editions',
+  'sections.specifications': 'Specs',
+  'sections.faq': 'FAQ',
+}
+
+function navLabel(section: Record<string, any>) {
+  return sectionLabel[section.__component] || section.eyebrow || section.title || 'Section'
+}
+
 const { locale } = useI18n()
 const slug = route.params.slug as string
 
