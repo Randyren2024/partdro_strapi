@@ -210,10 +210,10 @@ function clearFilters() {
   min-height: 46px;
 }
 .catalog-search :deep(.ant-input-search-button) {
-  border-radius: 0 999px 999px 0 !important;
+  border-radius: 0 !important;
 }
 .catalog-search :deep(.ant-input-affix-wrapper) {
-  border-radius: 999px 0 0 999px;
+  border-radius: 0;
 }
 .catalog-count {
   color: var(--pd-ink-muted);
@@ -230,7 +230,7 @@ function clearFilters() {
   min-height: 44px;
   padding: 10px 18px;
   border: 1px solid var(--pd-line);
-  border-radius: 999px;
+  border-radius: 0;
   background: var(--pd-surface);
   color: var(--pd-ink-soft);
   font-size: 13px;
@@ -305,7 +305,7 @@ function clearFilters() {
   left: 14px;
   padding: 6px 11px;
   border: 1px solid rgba(255,255,255,.24);
-  border-radius: 999px;
+  border-radius: 0;
   color: #fff;
   background: rgba(23, 26, 28, .86);
   font-size: 10px;

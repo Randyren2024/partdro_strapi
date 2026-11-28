@@ -1,81 +1,71 @@
 <template>
-  <section class="stats section">
-    <div class="container">
-      <div class="stats__grid">
-        <div class="stats__item" v-for="item in statsData" :key="item.key">
-          <div class="stats__icon">
-            <component :is="item.icon" />
-          </div>
-          <div class="stats__number">{{ item.value }}+</div>
-          <div class="stats__label" :data-edit-key="`stats.${item.key}`">{{ t(`stats.${item.key}`) }}</div>
-        </div>
+  <section class="stats" aria-label="Company figures">
+    <div class="container stats__grid">
+      <div class="stats__item" v-for="(item, index) in statsData" :key="item.key">
+        <span class="stats__index">{{ String(index + 1).padStart(2, "0") }}</span>
+        <div class="stats__number">{{ item.value }}+</div>
+        <div class="stats__label" :data-edit-key="`stats.${item.key}`">{{ t(`stats.${item.key}`) }}</div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import {
-  GlobalOutlined,
-  ExperimentOutlined,
-  SafetyCertificateOutlined,
-  TeamOutlined,
-} from '@ant-design/icons-vue'
+import { useI18n } from "vue-i18n";
 
-const { t } = useI18n()
+const { t } = useI18n();
 
 const statsData = [
-  { key: 'countries', value: 80, icon: GlobalOutlined },
-  { key: 'years', value: 12, icon: ExperimentOutlined },
-  { key: 'patents', value: 10, icon: SafetyCertificateOutlined },
-  { key: 'team', value: 100, icon: TeamOutlined },
-]
+  { key: "countries", value: 80 },
+  { key: "years", value: 12 },
+  { key: "patents", value: 10 },
+  { key: "team", value: 100 },
+];
 </script>
 
 <style scoped>
 .stats {
-  background: #0a0c0e;
-  position:relative;
-  overflow:hidden;
+  color: #f4f1ea;
+  background: #07080a;
+  border-block: 1px solid rgba(244, 241, 234, .12);
 }
-.stats::before { content:""; position:absolute; width:620px; height:620px; border:1px solid rgba(255,106,26,.18); border-radius:50%; left:-360px; top:-440px; }
 .stats__grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-  position:relative;
 }
 .stats__item {
-  text-align: center;
-  padding: 12px 28px;
-  border-right:1px solid rgba(255,255,255,.14);
+  position: relative;
+  padding: 28px 22px 26px;
+  border-right: 1px solid rgba(244, 241, 234, .12);
 }
-.stats__item:last-child { border-right:0; }
-.stats__icon {
-  font-size: 40px;
+.stats__item:last-child { border-right: 0; }
+.stats__index {
   color: var(--pd-accent);
-  margin-bottom: 12px;
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  letter-spacing: .16em;
 }
 .stats__number {
-  font-size: clamp(2.5rem,4vw,3.6rem);
-  font-weight: 750;
-  color: #fff;
-  margin-bottom: 8px;
+  margin: 10px 0 6px;
+  color: #f4f1ea;
+  font-family: var(--pd-font-display);
+  font-size: clamp(3.4rem, 5vw, 5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.04em;
+  line-height: .85;
 }
 .stats__label {
-  font-size: 16px;
-  color: rgba(255,255,255,.62);
-  font-size:13px;
-  letter-spacing:.04em;
+  max-width: 12rem;
+  color: rgba(244, 241, 234, .62);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
-
-@media (max-width: 768px) {
-  .stats__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .stats__item:nth-child(2) { border-right:0; }
-  .stats__item:nth-child(-n+2) { border-bottom:1px solid rgba(255,255,255,.14); padding-bottom:28px; }
-  .stats__item:nth-child(n+3) { padding-top:28px; }
+@media (max-width: 800px) {
+  .stats__grid { grid-template-columns: 1fr 1fr; }
+  .stats__item:nth-child(2) { border-right: 0; }
+  .stats__item:nth-child(-n + 2) { border-bottom: 1px solid rgba(244, 241, 234, .12); }
 }
 </style>

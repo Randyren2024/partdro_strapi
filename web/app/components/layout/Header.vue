@@ -143,7 +143,7 @@ onUnmounted(() => {
   inset: 0 0 auto;
   z-index: 1000;
   width: 100%;
-  min-height: 74px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   color: #f4f5f6;
@@ -159,7 +159,7 @@ onUnmounted(() => {
 }
 .header__inner {
   width: min(1200px, calc(100% - 48px));
-  min-height: 74px;
+  min-height: 64px;
   margin-inline: auto;
   display: flex;
   align-items: center;
@@ -213,9 +213,11 @@ onUnmounted(() => {
   color: #d6d6d7;
   background: transparent;
   border-radius: 0;
-  font-size: 13px;
-  font-weight: 550;
-  letter-spacing: .01em;
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   white-space: nowrap;
   text-decoration: none;
   transition: color .18s ease;
@@ -235,7 +237,7 @@ onUnmounted(() => {
   min-width: 224px;
   padding: 8px;
   border: 1px solid #3a3a3a;
-  border-radius: 10px;
+  border-radius: 0;
   background: #1c1c1e;
   box-shadow: 0 14px 34px rgba(0, 0, 0, .45);
   opacity: 0;
@@ -251,7 +253,7 @@ onUnmounted(() => {
 }
 .header__dropdown-item {
   padding: 9px 12px;
-  border-radius: 6px;
+  border-radius: 0;
   color: #d6d6d7;
   font-size: 13px;
   text-decoration: none;
@@ -300,18 +302,21 @@ onUnmounted(() => {
   min-height: 36px;
   padding: 0 17px;
   border: 0;
-  border-radius: 999px;
-  color: #080808;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 650;
+  border-radius: 0;
+  color: var(--pd-on-primary);
+  background: var(--pd-primary);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
   white-space: nowrap;
   text-decoration: none;
   transition: opacity .2s ease, transform .2s ease;
 }
 .header__contact:hover {
-  color: #080808;
-  background: #fff;
+  color: var(--pd-on-primary);
+  background: var(--pd-primary-hover);
   opacity: .86;
   transform: translateY(-1px);
 }
@@ -322,7 +327,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   border: 1px solid #4a4a4a;
-  border-radius: 50%;
+  border-radius: 0;
   color: #fff;
   background: rgba(255,255,255,.04);
   font-size: 17px;
@@ -331,7 +336,7 @@ onUnmounted(() => {
 .header__backdrop {
   position: fixed;
   z-index: 1;
-  inset: 74px 0 0;
+  inset: 64px 0 0;
   width: 100%;
   border: 0;
   background: rgba(0, 0, 0, .58);
@@ -346,7 +351,7 @@ onUnmounted(() => {
   right: 0;
   display: grid;
   gap: 0;
-  max-height: calc(100dvh - 74px);
+  max-height: calc(100dvh - 64px);
   overflow-y: auto;
   padding: 12px max(24px, calc((100vw - 1200px) / 2)) 20px;
   border-bottom: 1px solid #333;
