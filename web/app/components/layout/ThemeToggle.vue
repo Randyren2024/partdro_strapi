@@ -57,7 +57,7 @@ function toggleTheme() {
   align-items: center;
   justify-content: center;
   border: 1px solid var(--pd-line);
-  border-radius: 999px;
+  border-radius: 0;
   color: var(--pd-ink-soft);
   background: var(--pd-surface);
   cursor: pointer;

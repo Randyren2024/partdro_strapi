@@ -1,29 +1,40 @@
 <template>
   <section class="hero">
-    <div class="hero__bg">
-      <img
-        src="https://images.unsplash.com/photo-1508615039623-a25605d2b022?w=1920&q=80"
-        alt="Drone cleaning"
-      />
-      <div class="hero__overlay"></div>
+    <div class="hero__marks" aria-hidden="true">
+      <span>N 22.5431</span>
+      <span>E 114.0579</span>
+      <span>SZX / OPS</span>
+      <span>PLT 08</span>
     </div>
     <div class="container hero__content">
       <div class="hero__text">
-        <div class="hero__eyebrow"><span></span> {{ t("hero.eyebrow") }}</div>
+        <div class="hero__eyebrow"><span>01</span> {{ t("hero.eyebrow") }}</div>
         <h1 :data-edit-key="'hero.title'">{{ t("hero.title") }}</h1>
         <p :data-edit-key="'hero.subtitle'">{{ t("hero.subtitle") }}</p>
         <div class="hero__buttons">
-          <a-button type="primary" size="large" @click="$router.push(lp('/contact'))">
+          <button type="button" class="pd-btn pd-btn--solid" @click="$router.push(lp('/contact'))">
             <span :data-edit-key="'hero.cta'">{{ t("hero.cta") }}</span>
-          </a-button>
-          <a-button size="large" ghost @click="$router.push(lp('/products'))">
+          </button>
+          <button type="button" class="pd-btn hero__ghost" @click="$router.push(lp('/products'))">
             <span :data-edit-key="'hero.ctaSecondary'">{{ t("hero.ctaSecondary") }}</span>
-          </a-button>
+          </button>
         </div>
-        <div class="hero__proof"><span>{{ t("hero.precision") }}</span><span>{{ t("hero.delivery") }}</span><span>{{ t("hero.support") }}</span></div>
       </div>
-      <div class="hero__product-wrapper">
-        <img src="/d15r_hero.jpeg" alt="Partdro D15R Cleaning Drone" class="hero__product-img" />
+
+      <div class="hero__stage">
+        <div class="hero__plate">
+          <span class="hero__corner hero__corner--nw" aria-hidden="true"></span>
+          <span class="hero__corner hero__corner--ne" aria-hidden="true"></span>
+          <span class="hero__corner hero__corner--sw" aria-hidden="true"></span>
+          <span class="hero__corner hero__corner--se" aria-hidden="true"></span>
+          <img src="/d15r_hero.jpeg" alt="Partdro D15R Cleaning Drone" class="hero__product-img" />
+          <p class="hero__callsign">D15R / AIRFRAME</p>
+        </div>
+        <ol class="hero__hud">
+          <li><em>01</em><span :data-edit-key="'hero.precision'">{{ t("hero.precision") }}</span></li>
+          <li><em>02</em><span :data-edit-key="'hero.delivery'">{{ t("hero.delivery") }}</span></li>
+          <li><em>03</em><span :data-edit-key="'hero.support'">{{ t("hero.support") }}</span></li>
+        </ol>
       </div>
     </div>
   </section>
@@ -40,167 +51,167 @@ const lp = useLocalePath();
 <style scoped>
 .hero {
   position: relative;
-  min-height: min(760px, 100vh);
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  min-height: 100svh;
   overflow: hidden;
+  color: #f4f1ea;
+  background:
+    linear-gradient(rgba(255, 255, 255, .045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .045) 1px, transparent 1px),
+    radial-gradient(circle at 78% 42%, rgba(255, 90, 31, .18), transparent 26%),
+    #07080a;
+  background-size: 72px 72px, 72px 72px, auto, auto;
 }
-.hero__bg {
+.hero__marks {
   position: absolute;
-  inset: 0;
+  z-index: 2;
+  top: calc(var(--pd-header-height) + 14px);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  width: min(var(--pd-container), calc(100% - 48px));
+  margin-inline: auto;
+  color: var(--pd-accent);
+  font-family: var(--pd-font-mono);
+  font-size: 10px;
+  letter-spacing: .16em;
 }
-.hero__bg img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scale(1.025);
-}
-.hero__bg::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: .18;
-  background-image:
-    linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.055) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: linear-gradient(90deg, transparent, #000 70%);
-}
-.hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(12, 14, 15, .94) 0%, rgba(20, 23, 24, .82) 46%, rgba(20, 23, 24, .28) 100%);
-}
-.hero__bg::after { content:""; position:absolute; inset:0; background:radial-gradient(circle at 77% 45%, color-mix(in srgb, var(--pd-primary) 22%, transparent), transparent 28%); mix-blend-mode:screen; }
-.hero::after { content:""; position:absolute; right:5%; top:17%; width:34vw; height:34vw; border:1px solid rgba(255, 154, 112, .18); border-radius:50%; pointer-events:none; }
 .hero__content {
   position: relative;
-  z-index: 2;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, .95fr);
+  align-items: end;
+  gap: 36px;
+  width: 100%;
+  padding: calc(var(--pd-header-height) + 72px) 0 48px;
+}
+.hero__eyebrow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 44px;
-  width: 100%;
-  min-height: min(820px, calc(100svh - var(--pd-header-height)));
-  padding: 104px 20px 92px;
+  gap: 12px;
+  margin-bottom: 18px;
+  color: var(--pd-primary);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .18em;
 }
-.hero__text {
-  flex: 1;
-  max-width: 630px;
+.hero__eyebrow span {
+  color: var(--pd-accent);
 }
-.hero__eyebrow { display:flex; align-items:center; gap:10px; color:var(--color-primary-light); font-size:11px; font-weight:800; letter-spacing:.18em; margin-bottom:20px; }
-.hero__eyebrow span { width:36px; height:2px; background:var(--pd-primary); }
 .hero__text h1 {
-  max-width: 680px;
-  font-size: clamp(3.2rem, 6vw, 6rem);
-  font-weight: 760;
-  color: #fff;
-  line-height: 1.02;
-  margin-bottom: 24px;
-  letter-spacing: -.06em;
+  max-width: 9ch;
+  margin: 0 0 20px;
+  color: #f4f1ea;
+  font-size: clamp(4.2rem, 8vw, 7.6rem);
+  font-weight: 700;
+  line-height: .84;
+  letter-spacing: -.035em;
+  text-transform: uppercase;
 }
 .hero__text p {
-  font-size: 19px;
-  color: rgba(255, 255, 255, 0.85);
-  margin-bottom: 36px;
-  line-height: 1.7;
+  max-width: 36rem;
+  margin: 0 0 28px;
+  color: rgba(244, 241, 234, .78);
+  font-size: 18px;
+  line-height: 1.6;
 }
-.hero__buttons {
-  display: flex;
-  gap: 16px;
-}
-.hero__buttons :deep(.ant-btn) { height:48px; padding:0 23px; border-radius:999px; font-weight:700; box-shadow:none; }
-.hero__buttons :deep(.ant-btn-primary) { background:var(--pd-primary) !important; border-color:var(--pd-primary) !important; color:var(--pd-on-primary) !important; }
-.hero__proof { display:flex; gap:18px; flex-wrap:wrap; margin-top:35px; color:rgba(255,255,255,.78); font-size:10px; font-weight:750; letter-spacing:.13em; }
-.hero__proof span { display:flex; align-items:center; gap:7px; }
-.hero__proof span::before { content:""; width:5px; height:5px; border-radius:50%; background:var(--pd-primary); }
-.hero__buttons .ant-btn:not(.ant-btn-primary) {
-  border-color: #fff;
-  color: #fff;
-}
-.hero__buttons .ant-btn:not(.ant-btn-primary):hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: #fff;
-  color: #fff;
-}
-.hero__product-wrapper {
+.hero__buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero__ghost { border-color: rgba(244, 241, 234, .45); color: #f4f1ea; }
+.hero__ghost:hover { border-color: var(--pd-accent); color: var(--pd-accent); }
+.hero__stage { display: grid; gap: 12px; }
+.hero__plate {
   position: relative;
-  isolation: isolate;
-  flex-shrink: 0;
-  width: min(42vw, 560px);
-  display: flex;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  min-height: 420px;
+  padding: 28px 20px 48px;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(92, 225, 255, .08), transparent 46%),
+    linear-gradient(180deg, rgba(255,255,255,.03), transparent 30%);
+  border: 1px solid rgba(244, 241, 234, .14);
 }
-.hero__product-wrapper::before {
-  content: "";
+.hero__corner {
   position: absolute;
-  z-index: -1;
-  inset: 8%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,106,26,.22), rgba(63,208,255,.08) 42%, transparent 72%);
-  filter: blur(12px);
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--pd-primary);
 }
-.hero__product-wrapper::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  width: 86%;
-  aspect-ratio: 1;
-  top: 7%;
-  left: 7%;
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 50%;
-  box-shadow: 0 0 0 24px rgba(255,255,255,.018), 0 0 0 48px rgba(255,255,255,.012);
-}
+.hero__corner--nw { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.hero__corner--ne { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
+.hero__corner--sw { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
+.hero__corner--se { right: -1px; bottom: -1px; border-left: 0; border-top: 0; }
 .hero__product-img {
-  max-width: 100%;
+  width: min(100%, 520px);
   height: auto;
-  filter: drop-shadow(0 28px 55px rgba(0, 0, 0, 0.48));
-  animation: float 6s ease-in-out infinite;
+  max-height: 460px;
+  object-fit: contain;
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .55));
+  animation: hover 7s ease-in-out infinite;
 }
-@keyframes float { 50% { transform:translateY(-11px); } }
+.hero__callsign {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  margin: 0;
+  color: rgba(244, 241, 234, .55);
+  font-family: var(--pd-font-mono);
+  font-size: 10px;
+  letter-spacing: .18em;
+}
+.hero__hud {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid rgba(244, 241, 234, .14);
+}
+.hero__hud li {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 72px;
+  padding: 12px 14px;
+  border-right: 1px solid rgba(244, 241, 234, .14);
+}
+.hero__hud li:last-child { border-right: 0; }
+.hero__hud em {
+  color: var(--pd-accent);
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: .14em;
+}
+.hero__hud span {
+  color: #f4f1ea;
+  font-family: var(--pd-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  line-height: 1.35;
+}
+@keyframes hover { 50% { transform: translateY(-10px); } }
 
-@media (max-width: 992px) {
-  .hero__content {
-    min-height: 0;
-    flex-direction: column;
-    text-align: center;
-    padding: 72px 20px 64px;
-  }
-  .hero::after { width:65vw; height:65vw; right:-20%; }
-  .hero__text h1 {
-    max-width: 620px;
-    margin-inline: auto;
-    font-size: clamp(2.5rem, 8vw, 3.8rem);
-  }
-  .hero__buttons {
-    justify-content: center;
-  }
-  .hero__product-wrapper {
-    width: 100%;
-    max-width: 420px;
-  }
+@media (max-width: 980px) {
+  .hero__content { grid-template-columns: 1fr; padding-top: calc(var(--pd-header-height) + 56px); }
+  .hero__text h1 { max-width: 12ch; font-size: clamp(3.2rem, 14vw, 5.4rem); }
+  .hero__plate { min-height: 280px; }
+  .hero__product-img { max-height: 320px; }
 }
 @media (max-width: 640px) {
   .hero { min-height: 0; }
-  .hero__content { gap: 28px; padding: 88px 16px 48px; }
-  .hero__text { width: 100%; }
-  .hero__eyebrow { justify-content: center; margin-bottom: 14px; font-size: 10px; }
-  .hero__text h1 { font-size: clamp(2.35rem, 10.5vw, 3.5rem); line-height: 1.02; margin-bottom: 16px; }
-  .hero__text p { max-width: 34rem; margin: 0 auto 24px; font-size: 16px; line-height: 1.65; }
-  .hero__buttons { gap: 10px; flex-wrap: wrap; }
-  .hero__buttons :deep(.ant-btn) { min-height: 48px; height: auto; padding-inline: 18px; }
-  .hero__proof { justify-content: center; gap: 10px 14px; margin-top: 24px; }
-  .hero__proof span { font-size: 9px; letter-spacing: .08em; }
-  .hero__product-wrapper { max-width: 320px; }
-  .hero__product-img { max-height: 240px; object-fit: contain; }
-  .hero__product-img { animation: none; }
-  .hero__overlay { background: linear-gradient(180deg, rgba(12,14,15,.88), rgba(20,23,24,.76)); }
-}
-@media (max-width: 360px) {
-  .hero__buttons { flex-direction: column; }
-  .hero__buttons :deep(.ant-btn) { width: 100%; }
+  .hero__marks { display: none; }
+  .hero__content { gap: 22px; padding: 96px 0 28px; }
+  .hero__text p { font-size: 16px; }
+  .hero__buttons { display: grid; }
+  .hero__plate { min-height: 220px; padding-bottom: 36px; }
+  .hero__product-img { max-height: 220px; animation: none; }
+  .hero__hud { grid-template-columns: 1fr; }
+  .hero__hud li { border-right: 0; border-bottom: 1px solid rgba(244, 241, 234, .14); }
+  .hero__hud li:last-child { border-bottom: 0; }
 }
 </style>
